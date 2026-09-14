@@ -28,9 +28,6 @@ export default function HomePage() {
           <h1 className="text-balance text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             {ORG.formTitle}
           </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-pretty text-sm text-muted-foreground sm:text-base">
-            {ORG.formSubtitle}
-          </p>
         </div>
 
         <Card>

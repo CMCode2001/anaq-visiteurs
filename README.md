@@ -360,8 +360,14 @@ npm run lint        # ESLint
    - `NEXT_PUBLIC_CONSENT_VERSION`
    - `NEXT_PUBLIC_SITE_URL` → l'URL finale du projet
 5. **Deploy**
-6. Dans Supabase → **Authentication → URL Configuration**, ajouter l'URL Vercel
-   dans « Site URL » et « Redirect URLs »
+6. `NEXT_PUBLIC_SITE_URL` n'est pas connue avant le premier déploiement :
+   déployez une première fois, puis renseignez l'URL obtenue et redéployez.
+   À défaut, l'application se rabat sur `VERCEL_URL`.
+
+> **Supabase → Authentication → URL Configuration** n'est *pas* nécessaire pour
+> la V1 : la connexion se fait par mot de passe (`signInWithPassword`), sans
+> lien email ni redirection OAuth. Il faudra y ajouter l'URL Vercel le jour où
+> vous activerez la récupération de mot de passe ou les liens magiques.
 
 ---
 
