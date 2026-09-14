@@ -1,0 +1,100 @@
+import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { buildVisitorSearchParams } from "@/lib/validation/filters";
+import type { PaginatedVisitors, VisitorQuery } from "@/types/visitor";
+
+const NUMBER_FORMATTER = new Intl.NumberFormat("fr-FR");
+
+/** Pagination par liens : fonctionne sans JavaScript, indexable par le clavier. */
+export function Pagination({
+  result,
+  query,
+}: {
+  result: PaginatedVisitors;
+  query: VisitorQuery;
+}) {
+  if (result.total === 0) return null;
+
+  const first = (result.page - 1) * result.pageSize + 1;
+  const last = Math.min(result.page * result.pageSize, result.total);
+
+  const href = (page: number) => {
+    const params = buildVisitorSearchParams({ ...query, page });
+    const queryString = params.toString();
+    return queryString ? `/admin/visitors?${queryString}` : "/admin/visitors";
+  };
+
+  const hasPrevious = result.page > 1;
+  const hasNext = result.page < result.pageCount;
+
+  return (
+    <nav
+      aria-label="Pagination des visiteurs"
+      className="flex flex-col items-center justify-between gap-3 sm:flex-row no-print"
+    >
+      <p className="text-sm text-muted-foreground" aria-live="polite">
+        Visiteurs{" "}
+        <span className="font-medium text-foreground tabular-nums">
+          {NUMBER_FORMATTER.format(first)}–{NUMBER_FORMATTER.format(last)}
+        </span>{" "}
+        sur{" "}
+        <span className="font-medium text-foreground tabular-nums">
+          {NUMBER_FORMATTER.format(result.total)}
+        </span>
+      </p>
+
+      <div className="flex items-center gap-2">
+        {hasPrevious ? (
+          <Link
+            href={href(result.page - 1)}
+            rel="prev"
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+          >
+            <ChevronLeft aria-hidden="true" />
+            Précédent
+          </Link>
+        ) : (
+          <span
+            aria-disabled="true"
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "pointer-events-none opacity-50",
+            )}
+          >
+            <ChevronLeft aria-hidden="true" />
+            Précédent
+          </span>
+        )}
+
+        <span className="px-2 text-sm text-muted-foreground tabular-nums">
+          Page {result.page} / {result.pageCount}
+        </span>
+
+        {hasNext ? (
+          <Link
+            href={href(result.page + 1)}
+            rel="next"
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+          >
+            Suivant
+            <ChevronRight aria-hidden="true" />
+          </Link>
+        ) : (
+          <span
+            aria-disabled="true"
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "pointer-events-none opacity-50",
+            )}
+          >
+            Suivant
+            <ChevronRight aria-hidden="true" />
+          </span>
+        )}
+      </div>
+    </nav>
+  );
+}

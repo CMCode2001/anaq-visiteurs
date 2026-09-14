@@ -1,0 +1,13 @@
+# Normalisation des fins de ligne : le depot stocke toujours en LF,
+# Windows recupere du CRLF a la sortie. Evite des diffs entiers de fichiers
+# entre postes Windows et build Vercel (Linux).
+* text=auto eol=lf
+
+# Binaires : jamais de conversion
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
