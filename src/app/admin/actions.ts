@@ -74,6 +74,14 @@ export async function signInAction(
       code: error.code,
       status: error.status,
       message: error.message,
+      // Diagnostic : l'adresse réellement soumise (une faute de frappe ou un
+      // remplissage automatique du navigateur donne le même `invalid_credentials`
+      // qu'un mauvais mot de passe).
+      emailSoumis: parsed.data.email,
+      // Jamais le mot de passe, seulement sa longueur : suffit à repérer un
+      // champ pré-rempli par le gestionnaire de mots de passe ou un
+      // copier-coller tronqué.
+      longueurMotDePasse: parsed.data.password.length,
     });
 
     return { error: "Email ou mot de passe incorrect." };
