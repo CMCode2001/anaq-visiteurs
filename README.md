@@ -44,21 +44,21 @@ habilités y accèdent par l'URL directe)
 
 ## 2. Stack technique
 
-| Domaine          | Choix                              |
-| ---------------- | ---------------------------------- |
-| Framework        | Next.js 15 (App Router) + React 19 |
-| Langage          | TypeScript (strict)                |
-| Styles           | Tailwind CSS v4                    |
-| Composants       | shadcn/ui (Radix UI)               |
-| Base de données  | PostgreSQL via Supabase            |
-| Authentification | Supabase Auth                      |
-| Validation       | Zod (client **et** serveur)        |
-| Sélecteur de pays | cmdk + Radix Popover (recherche clavier) |
+| Domaine                 | Choix                                        |
+| ----------------------- | -------------------------------------------- |
+| Framework               | Next.js 15 (App Router) + React 19           |
+| Langage                 | TypeScript (strict)                          |
+| Styles                  | Tailwind CSS v4                              |
+| Composants              | shadcn/ui (Radix UI)                         |
+| Base de données         | PostgreSQL via Supabase                      |
+| Authentification        | Supabase Auth                                |
+| Validation              | Zod (client **et** serveur)                  |
+| Sélecteur de pays       | cmdk + Radix Popover (recherche clavier)     |
 | Téléphone international | react-phone-number-input + libphonenumber-js |
-| Graphiques       | Recharts                           |
-| Export Excel     | SheetJS (`xlsx`)                   |
-| Export PDF       | jsPDF + jspdf-autotable            |
-| Déploiement      | Vercel                             |
+| Graphiques              | Recharts                                     |
+| Export Excel            | SheetJS (`xlsx`)                             |
+| Export PDF              | jsPDF + jspdf-autotable                      |
+| Déploiement             | Vercel                                       |
 
 Aucun serveur backend dédié : **Supabase joue le rôle de Backend-as-a-Service**,
 ce qui réduit le coût d'infrastructure et de maintenance de la V1.
@@ -176,7 +176,7 @@ Pour changer les pays épinglés en tête de liste, modifier
 
 Les numéros sont stockés au format **E.164** (`+221771234567`) : compact, non
 ambigu, indépendant des conventions locales. Ils ne sont mis en forme qu'à
-l'affichage — `formatPhoneDisplay()` dans `src/lib/phone.ts` produit
+l'affichage - `formatPhoneDisplay()` dans `src/lib/phone.ts` produit
 `+221 77 123 45 67` à l'écran, dans Excel et dans les PDF.
 
 La validation utilise `isValidPhoneNumber` : longueur **et** préfixe opérateur

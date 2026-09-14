@@ -48,7 +48,7 @@ export default function HomePage() {
         </Card>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          {ORG.name} — {ORG.shortName}
+          {ORG.name} - {ORG.shortName}
         </p>
       </main>
     </div>

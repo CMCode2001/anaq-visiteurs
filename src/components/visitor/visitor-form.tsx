@@ -77,13 +77,7 @@ export function VisitorForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
-      <p className="text-sm text-muted-foreground">
-        Les champs signalés par un astérisque{" "}
-        <span className="font-semibold text-destructive">*</span> sont
-        obligatoires.
-      </p>
-
-      <div className="grid gap-5 sm:grid-cols-2">
+    <div className="grid gap-5 sm:grid-cols-2">
         <FormField
           id="firstName"
           label="Prénom"

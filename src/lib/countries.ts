@@ -16,7 +16,7 @@ import frLabels from "react-phone-number-input/locale/fr.json";
 export interface Country {
   /** Code ISO 3166-1 alpha-2, ex. « SN ». */
   code: string;
-  /** Libellé français, ex. « Sénégal » — c'est la valeur stockée en base. */
+  /** Libellé français, ex. « Sénégal » - c'est la valeur stockée en base. */
   name: string;
 }
 
@@ -86,8 +86,7 @@ function lookupByName(name: string | undefined | null) {
   if (!name) return undefined;
   const normalized = normalize(name);
   return (
-    byName.get(normalized) ??
-    byNameSquashed.get(normalized.replaceAll(" ", ""))
+    byName.get(normalized) ?? byNameSquashed.get(normalized.replaceAll(" ", ""))
   );
 }
 

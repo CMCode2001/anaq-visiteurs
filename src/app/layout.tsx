@@ -14,11 +14,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: `${ORG.formTitle} — ${ORG.shortName}`,
-    template: `%s — ${ORG.shortName}`,
+    default: `${ORG.formTitle} - ${ORG.shortName}`,
+    template: `%s - ${ORG.shortName}`,
   },
   description: ORG.formSubtitle,
-  applicationName: `${ORG.shortName} — Visiteurs`,
+  applicationName: `${ORG.shortName} - Visiteurs`,
   icons: { icon: ORG.logoPath, apple: ORG.logoPath },
   robots: {
     // Application interne : pas d'indexation par les moteurs de recherche.

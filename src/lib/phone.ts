@@ -5,12 +5,12 @@ import { parsePhoneNumberFromString } from "libphonenumber-js";
  *
  * Les numéros sont stockés au format E.164 (`+221771234567`) : compact,
  * non ambigu et indépendant des conventions locales. Ils ne sont mis en forme
- * qu'au moment de l'affichage — écran, Excel ou PDF.
+ * qu'au moment de l'affichage - écran, Excel ou PDF.
  */
 
 /** « +221771234567 » → « +221 77 123 45 67 ». */
 export function formatPhoneDisplay(value: string | null | undefined) {
-  if (!value) return "—";
+  if (!value) return "-";
 
   const parsed = parsePhoneNumberFromString(value);
   return parsed?.formatInternational() ?? value;

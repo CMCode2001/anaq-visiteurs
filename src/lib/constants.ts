@@ -8,7 +8,7 @@ export const ORG = {
   name: "Autorité Nationale d'Assurance Qualité de l'Enseignement Supérieur",
   formTitle: "Fiche de présence des visiteurs",
   formSubtitle:
-    "ANAQ-Sup — Informations sur les établissements habilités et les programmes accrédités",
+    "ANAQ-Sup - Informations sur les établissements habilités et les programmes accrédités",
   /** Remplacer par l'URL officielle de la politique de confidentialité. */
   privacyPolicyUrl: "/politique-confidentialite",
   /** Logo officiel, utilisé à l'écran, en favicon et dans les exports PDF. */
@@ -41,7 +41,7 @@ export const EXPORT_MAX_ROWS = 10_000;
  * Suggestions de formations proposées dans le champ « Formation recherchée ».
  * La saisie libre reste possible : cette liste n'est qu'un raccourci.
  *
- * La liste des pays, elle, vient du référentiel ISO 3166-1 —
+ * La liste des pays, elle, vient du référentiel ISO 3166-1 -
  * voir `src/lib/countries.ts`.
  */
 export const FORMATION_SUGGESTIONS = [

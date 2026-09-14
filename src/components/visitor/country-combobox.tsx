@@ -29,7 +29,7 @@ import { cn } from "@/lib/utils";
 
 interface CountryComboboxProps {
   id: string;
-  /** Libellé français du pays, ex. « Sénégal » — valeur stockée en base. */
+  /** Libellé français du pays, ex. « Sénégal » - valeur stockée en base. */
   value: string;
   onChange: (countryName: string) => void;
   onBlur?: () => void;
@@ -68,7 +68,7 @@ export function CountryCombobox({
           Pas de `role="combobox"` ici : Radix pose déjà `aria-haspopup="dialog"`,
           `aria-expanded` et `aria-controls` sur le déclencheur. Le motif réel
           est bien « bouton → dialogue contenant une liste », et non un combobox
-          ARIA 1.2 — le lecteur d'écran annonce le pays choisi puis l'état
+          ARIA 1.2 - le lecteur d'écran annonce le pays choisi puis l'état
           déplié / replié.
         */}
         <button
@@ -98,10 +98,7 @@ export function CountryCombobox({
           )}
 
           <span
-            className={cn(
-              "flex-1 truncate",
-              !value && "text-muted-foreground",
-            )}
+            className={cn("flex-1 truncate", !value && "text-muted-foreground")}
           >
             {value || "Sélectionnez votre pays"}
           </span>
@@ -121,7 +118,9 @@ export function CountryCombobox({
           <CommandInput placeholder="Rechercher un pays…" />
 
           <CommandList>
-            <CommandEmpty>Aucun pays ne correspond à cette recherche.</CommandEmpty>
+            <CommandEmpty>
+              Aucun pays ne correspond à cette recherche.
+            </CommandEmpty>
 
             <CommandGroup heading="Fréquemment sélectionnés">
               {PRIORITY_COUNTRIES.map((country) => (
@@ -163,10 +162,7 @@ function CountryItem({
   onSelect: () => void;
 }) {
   return (
-    <CommandItem
-      value={`${country.name} ${country.code}`}
-      onSelect={onSelect}
-    >
+    <CommandItem value={`${country.name} ${country.code}`} onSelect={onSelect}>
       <Flag code={country.code} />
       <span className="flex-1 truncate">{country.name}</span>
       {selected ? (

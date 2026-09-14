@@ -144,7 +144,7 @@ export default async function VisitorDetailPage({
                     {visitor.email}
                   </a>
                 ) : (
-                  "—"
+                  "-"
                 )
               }
             />
@@ -190,8 +190,10 @@ export default async function VisitorDetailPage({
 
             <dl className="space-y-3 text-sm">
               <div>
-                <dt className="text-muted-foreground">Version du consentement</dt>
-                <dd className="font-medium">{visitor.consentVersion ?? "—"}</dd>
+                <dt className="text-muted-foreground">
+                  Version du consentement
+                </dt>
+                <dd className="font-medium">{visitor.consentVersion ?? "-"}</dd>
               </div>
               <div>
                 <dt className="text-muted-foreground">Date du consentement</dt>
@@ -218,7 +220,10 @@ export default async function VisitorDetailPage({
             </dl>
 
             <p className="flex items-start gap-2 rounded-2xl bg-muted/60 p-4 text-xs text-muted-foreground">
-              <CalendarClock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+              <CalendarClock
+                className="mt-0.5 size-3.5 shrink-0"
+                aria-hidden="true"
+              />
               Les horodatages sont générés par le serveur et ne peuvent pas être
               modifiés depuis l&apos;application.
             </p>

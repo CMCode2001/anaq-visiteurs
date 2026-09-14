@@ -3,7 +3,7 @@
  *
  * Pourquoi ne pas les importer depuis le JavaScript ?
  * `react-phone-number-input/flags` embarque les 250 drapeaux dans le bundle
- * (~1 Mo) — inacceptable pour un formulaire public consulté depuis une
+ * (~1 Mo) - inacceptable pour un formulaire public consulté depuis une
  * tablette d'accueil. Servis en fichiers statiques et chargés en `lazy`,
  * seuls les drapeaux réellement visibles à l'écran sont téléchargés.
  *
@@ -28,9 +28,7 @@ const SOURCE = path.join(
 const TARGET = path.join(process.cwd(), "public", "flags");
 
 try {
-  const files = (await readdir(SOURCE)).filter((file) =>
-    file.endsWith(".svg"),
-  );
+  const files = (await readdir(SOURCE)).filter((file) => file.endsWith(".svg"));
 
   await mkdir(TARGET, { recursive: true });
   await cp(SOURCE, TARGET, { recursive: true });

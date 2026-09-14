@@ -159,7 +159,7 @@ function drawFooter(doc: jsPDF) {
     doc.setFontSize(8);
     doc.setTextColor(...MUTED);
     doc.text(
-      "Document interne ANAQ-Sup — données à caractère personnel",
+      "Document interne ANAQ-Sup - données à caractère personnel",
       MARGIN,
       pageHeight - 8,
     );
@@ -182,7 +182,7 @@ export async function buildVisitorsPdf(
 ): Promise<Buffer> {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
 
-  await drawHeader(doc, "Rapport — Fiche de présence des visiteurs");
+  await drawHeader(doc, "Rapport - Fiche de présence des visiteurs");
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
@@ -227,7 +227,7 @@ export async function buildVisitorsPdf(
       visitor.lastName,
       visitor.country,
       formatPhoneDisplay(visitor.phone),
-      visitor.email ?? "—",
+      visitor.email ?? "-",
       visitor.formationRequested,
       visitor.consentGiven ? "Oui" : "Non",
     ]),
@@ -289,10 +289,10 @@ export async function buildVisitorSheetPdf(visitor: Visitor): Promise<Buffer> {
       ["Nom", visitor.lastName],
       ["Pays d'origine", visitor.country],
       ["Téléphone", formatPhoneDisplay(visitor.phone)],
-      ["Email", visitor.email ?? "—"],
+      ["Email", visitor.email ?? "-"],
       ["Formation recherchée", visitor.formationRequested],
       ["Consentement", visitor.consentGiven ? "Accordé" : "Non accordé"],
-      ["Version du consentement", visitor.consentVersion ?? "—"],
+      ["Version du consentement", visitor.consentVersion ?? "-"],
       ["Date du consentement", formatDateTime(visitor.consentDate)],
       ["Date de création", formatDateTime(visitor.createdAt)],
       ["Identifiant", visitor.id],

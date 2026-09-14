@@ -45,7 +45,11 @@ export function VisitorsTable({
 }) {
   if (result.items.length === 0) {
     const filtered = Boolean(
-      query.search || query.country || query.formation || query.from || query.to,
+      query.search ||
+      query.country ||
+      query.formation ||
+      query.from ||
+      query.to,
     );
 
     return (
@@ -71,8 +75,15 @@ export function VisitorsTable({
         <TableHeader>
           <TableRow className="bg-muted/50 hover:bg-muted/50">
             {SORTABLE_COLUMNS.map((column) => (
-              <TableHead key={column.field} aria-sort={ariaSort(query, column.field)}>
-                <SortLink column={column.field} label={column.label} query={query} />
+              <TableHead
+                key={column.field}
+                aria-sort={ariaSort(query, column.field)}
+              >
+                <SortLink
+                  column={column.field}
+                  label={column.label}
+                  query={query}
+                />
               </TableHead>
             ))}
             <TableHead>Téléphone</TableHead>
@@ -110,7 +121,9 @@ export function VisitorsTable({
                   </Link>
                 </TableCell>
 
-                <TableCell className="font-medium">{visitor.lastName}</TableCell>
+                <TableCell className="font-medium">
+                  {visitor.lastName}
+                </TableCell>
                 <TableCell>{visitor.country}</TableCell>
 
                 <TableCell className="whitespace-nowrap">
@@ -132,7 +145,7 @@ export function VisitorsTable({
                       {visitor.email}
                     </a>
                   ) : (
-                    <span className="text-muted-foreground">—</span>
+                    <span className="text-muted-foreground">-</span>
                   )}
                 </TableCell>
 
@@ -186,8 +199,7 @@ function SortLink({
   query: VisitorQuery;
 }) {
   const isActive = query.sort === column;
-  const nextDirection =
-    isActive && query.direction === "desc" ? "asc" : "desc";
+  const nextDirection = isActive && query.direction === "desc" ? "asc" : "desc";
 
   const params = buildVisitorSearchParams({
     ...query,

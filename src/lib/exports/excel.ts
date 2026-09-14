@@ -63,12 +63,12 @@ export function buildVisitorsWorkbook(
     [],
     ["Date de génération", formatDateTime(new Date())],
     ["Période", describePeriod(query.from, query.to)],
-    ["Recherche", query.search ?? "—"],
-    ["Filtre pays", query.country ?? "—"],
-    ["Filtre formation", query.formation ?? "—"],
+    ["Recherche", query.search ?? "-"],
+    ["Filtre pays", query.country ?? "-"],
+    ["Filtre formation", query.formation ?? "-"],
     ["Nombre total de visiteurs", visitors.length],
     [],
-    ["Document interne ANAQ-Sup — contient des données à caractère personnel."],
+    ["Document interne ANAQ-Sup - contient des données à caractère personnel."],
   ]);
   info["!cols"] = [{ wch: 28 }, { wch: 52 }];
 

@@ -29,23 +29,23 @@ const DATE_LONG_FORMATTER = new Intl.DateTimeFormat("fr-FR", {
  * (Le Sénégal est à UTC+0, l'affichage correspond donc à l'heure locale.)
  */
 export function formatDateTime(value: string | Date | null | undefined) {
-  if (!value) return "—";
+  if (!value) return "-";
   const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
+  if (Number.isNaN(date.getTime())) return "-";
   return DATE_TIME_FORMATTER.format(date);
 }
 
 export function formatDate(value: string | Date | null | undefined) {
-  if (!value) return "—";
+  if (!value) return "-";
   const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
+  if (Number.isNaN(date.getTime())) return "-";
   return DATE_FORMATTER.format(date);
 }
 
 export function formatDateLong(value: string | Date | null | undefined) {
-  if (!value) return "—";
+  if (!value) return "-";
   const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
+  if (Number.isNaN(date.getTime())) return "-";
   return DATE_LONG_FORMATTER.format(date);
 }
 
