@@ -81,7 +81,7 @@ export function CountryCombobox({
           aria-describedby={describedBy}
           onBlur={onBlur}
           className={cn(
-            "flex h-11 w-full items-center gap-3 rounded-full border border-input bg-card px-4 text-left text-base shadow-sm transition-colors",
+            "flex h-11 w-full items-center gap-3 rounded-full border border-input bg-card px-5 text-left text-base shadow-sm transition-colors",
             "hover:border-primary/60",
             "focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--background)]",
             "data-[invalid]:border-destructive",

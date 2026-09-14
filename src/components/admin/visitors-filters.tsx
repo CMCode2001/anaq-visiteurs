@@ -91,7 +91,7 @@ export function VisitorsFilters({
           <Label htmlFor="search">Recherche</Label>
           <div className="relative">
             <Search
-              className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+              className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
               aria-hidden="true"
             />
             <Input
@@ -100,7 +100,7 @@ export function VisitorsFilters({
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Nom, prénom, email, téléphone, pays, formation…"
-              className="pl-9"
+              className="pl-11"
             />
           </div>
         </div>
@@ -116,7 +116,7 @@ export function VisitorsFilters({
               onChange={(event) =>
                 pushWith({ from: event.target.value || undefined })
               }
-              className="lg:w-[11rem]"
+              className="lg:w-[12.5rem]"
             />
           </div>
 
@@ -130,7 +130,7 @@ export function VisitorsFilters({
               onChange={(event) =>
                 pushWith({ to: event.target.value || undefined })
               }
-              className="lg:w-[11rem]"
+              className="lg:w-[12.5rem]"
             />
           </div>
         </div>

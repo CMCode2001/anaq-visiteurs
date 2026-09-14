@@ -24,7 +24,7 @@ const PasswordInput = React.forwardRef<
       <Input
         ref={ref}
         type={visible ? "text" : "password"}
-        className={cn("pr-12", className)}
+        className={cn("pr-14", className)}
         {...props}
       />
 
@@ -38,7 +38,7 @@ const PasswordInput = React.forwardRef<
         aria-controls={props.id}
         title={visible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
         className={cn(
-          "absolute right-1.5 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full",
+          "absolute right-2.5 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full",
           "text-muted-foreground transition-colors hover:bg-accent hover:text-foreground",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]",
         )}

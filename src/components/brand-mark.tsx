@@ -33,11 +33,7 @@ export function BrandMark({
     <span
       className={cn(
         "inline-flex",
-        stacked
-          ? "flex-col items-start gap-2"
-          : // Sur telephone, le libelle passe sous le logo : cote a cote, il ne
-            // resterait qu'une poignee de caracteres par ligne.
-            "flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-3",
+        stacked ? "flex-col items-start gap-2" : "items-center gap-3",
         className,
       )}
     >
@@ -53,8 +49,12 @@ export function BrandMark({
       {tagline ? (
         <span
           className={cn(
-            "block text-[11px] font-light leading-snug text-muted-foreground",
-            stacked ? "" : "sm:max-w-[26rem] sm:border-l sm:border-border sm:pl-3",
+            "text-[11px] font-light leading-snug text-muted-foreground",
+            // Masque sous 640 px : la denomination officielle est trop longue
+            // pour un telephone, ou seul le logotype fait sens.
+            stacked
+              ? "block"
+              : "hidden sm:block sm:max-w-[26rem] sm:border-l sm:border-border sm:pl-3",
           )}
         >
           {/*

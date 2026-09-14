@@ -224,11 +224,13 @@
 
 .anaq-phone .PhoneInputInput {
   height: 100%;
+  min-width: 0; /* autorise le champ a retrecir au lieu de pousser la pastille */
   border: 0;
   background: transparent;
   color: var(--foreground);
   font-size: 1rem;
   outline: none;
+  text-overflow: ellipsis;
 }
 
 .anaq-phone .PhoneInputInput::placeholder {

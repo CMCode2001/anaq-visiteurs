@@ -55,7 +55,7 @@ export function PhoneField({
       autoComplete="tel"
       countrySelectProps={{ "aria-label": "Indicatif téléphonique du pays" }}
       className={cn(
-        "anaq-phone flex h-11 w-full items-center gap-3 rounded-full border border-input bg-card px-4 shadow-sm transition-colors",
+        "anaq-phone flex h-11 w-full items-center gap-3 rounded-full border border-input bg-card px-5 shadow-sm transition-colors",
         "hover:border-primary/60",
         "focus-within:border-primary focus-within:ring-2 focus-within:ring-[var(--ring)] focus-within:ring-offset-1 focus-within:ring-offset-[var(--background)]",
         invalid && "border-destructive",
