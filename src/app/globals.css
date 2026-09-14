@@ -205,6 +205,14 @@
   --PhoneInputCountryFlag-height: 1rem;
   --PhoneInputCountrySelectArrow-color: var(--muted-foreground);
   --PhoneInputCountrySelectArrow-opacity: 1;
+  /* Sans cela, la largeur minimale du champ interne (environ 20 caracteres)
+     remonte jusqu'a la grille du formulaire et fait deborder la carte. */
+  min-width: 0;
+}
+
+.anaq-phone .PhoneInputCountry,
+.anaq-phone .PhoneInputCountrySelect {
+  min-width: 0;
 }
 
 .anaq-phone .PhoneInputCountry {

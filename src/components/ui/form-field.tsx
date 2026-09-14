@@ -30,7 +30,11 @@ export function FormField({
   children,
 }: FormFieldProps) {
   return (
-    <div className={cn("space-y-2", className)}>
+    // `min-w-0` est indispensable : en tant qu'element de grille, cette
+    // enveloppe a `min-width: auto` et ne peut pas descendre sous la largeur
+    // minimale de son contenu. Un champ un peu large fait alors deborder
+    // toute la carte sur les petits ecrans.
+    <div className={cn("min-w-0 space-y-2", className)}>
       <Label htmlFor={id} className={cn(required && "required-marker")}>
         {label}
       </Label>

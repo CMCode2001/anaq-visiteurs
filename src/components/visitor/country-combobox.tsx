@@ -98,7 +98,7 @@ export function CountryCombobox({
           )}
 
           <span
-            className={cn("flex-1 truncate", !value && "text-muted-foreground")}
+            className={cn("min-w-0 flex-1 truncate", !value && "text-muted-foreground")}
           >
             {value || "Sélectionnez votre pays"}
           </span>
@@ -164,7 +164,7 @@ function CountryItem({
   return (
     <CommandItem value={`${country.name} ${country.code}`} onSelect={onSelect}>
       <Flag code={country.code} />
-      <span className="flex-1 truncate">{country.name}</span>
+      <span className="min-w-0 flex-1 truncate">{country.name}</span>
       {selected ? (
         <Check className="size-4 shrink-0 text-gold-ink" aria-hidden="true" />
       ) : null}
