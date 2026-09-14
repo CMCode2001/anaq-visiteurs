@@ -359,10 +359,20 @@ npm run lint        # ESLint
    - `SUPABASE_SERVICE_ROLE_KEY` _(non exposée au navigateur)_
    - `NEXT_PUBLIC_CONSENT_VERSION`
    - `NEXT_PUBLIC_SITE_URL` → l'URL finale du projet
-5. **Deploy**
-6. `NEXT_PUBLIC_SITE_URL` n'est pas connue avant le premier déploiement :
+5. **Ignorer « Optional Integrations -> Supabase »** : cette intégration sert à
+   créer ou rattacher un projet Supabase depuis Vercel et injecte ses propres
+   variables. Le projet existe déjà et ses variables sont saisies à la main :
+   l'ajouter ne ferait que créer des doublons.
+6. **Deploy**
+7. `NEXT_PUBLIC_SITE_URL` n'est pas connue avant le premier déploiement :
    déployez une première fois, puis renseignez l'URL obtenue et redéployez.
    À défaut, l'application se rabat sur `VERCEL_URL`.
+
+**Région des fonctions.** La base Supabase est en `eu-west-3` (Paris) : le
+fichier `vercel.json` fixe les fonctions serverless sur `cdg1` (Paris) pour
+éviter un aller-retour transatlantique à chaque requête. Sans cela, Vercel
+place les fonctions à Washington par défaut. Si votre base change de région,
+ajustez `regions` dans `vercel.json` (`fra1` = Francfort, `iad1` = Washington).
 
 > **Supabase → Authentication → URL Configuration** n'est *pas* nécessaire pour
 > la V1 : la connexion se fait par mot de passe (`signInWithPassword`), sans
