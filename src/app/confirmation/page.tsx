@@ -29,23 +29,17 @@ export default function ConfirmationPage() {
 
             <div className="space-y-2">
               <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                Votre demande a bien été enregistrée.
+               Merci pour votre visite auprès de <br/> l&apos;{ORG.shortName}.
               </h1>
-              <p className="text-base text-muted-foreground">
-                Merci pour votre visite auprès de l&apos;{ORG.shortName}.
-              </p>
+              
             </div>
 
-            <p className="max-w-md text-sm text-muted-foreground">
-              Un agent prendra connaissance de votre demande d&apos;information
-              concernant les établissements habilités et les programmes
-              accrédités.
-            </p>
+            
 
             <Button asChild size="lg">
               <Link href="/">
                 <RotateCcw aria-hidden="true" />
-                Enregistrer un nouveau visiteur
+                Retour
               </Link>
             </Button>
           </CardContent>
