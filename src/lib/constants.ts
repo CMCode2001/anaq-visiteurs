@@ -5,7 +5,10 @@
 
 export const ORG = {
   shortName: "ANAQ-Sup",
-  name: "Autorité Nationale d'Assurance Qualité de l'Enseignement Supérieur",
+  /** Dénomination officielle complète (PDF, pied de page, mentions légales). */
+  name: "Autorité nationale d'Assurance Qualité de l'Enseignement supérieur, de la Recherche et de l'Innovation",
+  /** Version abrégée, affichée sur les petits écrans. */
+  nameCompact: "Assurance Qualité de l'Enseignement supérieur",
   formTitle: "Fiche de présence des visiteurs",
   formSubtitle:
     "ANAQ-Sup - Informations sur les établissements habilités et les programmes accrédités",

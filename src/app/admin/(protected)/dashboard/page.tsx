@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import {
   BarChart3,
+  ExternalLink,
   CalendarDays,
   CalendarRange,
   Clock3,
@@ -24,6 +25,8 @@ import {
 } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
+import { requireAdmin } from "@/lib/auth/guards";
+import { ORG } from "@/lib/constants";
 import { getVisitorStats } from "@/lib/services/visitors";
 
 export const metadata: Metadata = { title: "Tableau de bord" };
@@ -31,25 +34,46 @@ export const metadata: Metadata = { title: "Tableau de bord" };
 // Les compteurs doivent refléter l'état réel de la base à chaque affichage.
 export const dynamic = "force-dynamic";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const identity = await requireAdmin();
+  const greeting = (identity.fullName?.trim() || identity.email).split(" ")[0];
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Tableau de bord</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Fréquentation de l&apos;accueil et principales demandes
-            d&apos;information.
-          </p>
-        </div>
+      <h1 className="text-2xl font-bold tracking-tight">Tableau de bord</h1>
 
-        <Button asChild variant="outline">
-          <Link href="/admin/visitors">
-            <Users aria-hidden="true" />
-            Consulter les visiteurs
-          </Link>
-        </Button>
-      </div>
+      {/* Bandeau d'accueil : rappelle l'identite de l'agent et ouvre sur les
+          deux actions les plus frequentes a la prise de poste. */}
+      <section className="overflow-hidden rounded-3xl bg-primary px-6 py-6 text-primary-foreground shadow-sm sm:px-8">
+        <p className="text-xl font-semibold sm:text-2xl">
+          Bonjour {greeting} 👋
+        </p>
+        <p className="mt-1 max-w-xl text-sm text-primary-foreground/80">
+          Fréquentation de l&apos;accueil et principales demandes
+          d&apos;information des visiteurs de l&apos;{ORG.shortName}.
+        </p>
+
+        <div className="mt-5 flex flex-wrap gap-2">
+          <Button asChild variant="navy" size="sm">
+            <Link href="/admin/visitors">
+              <Users aria-hidden="true" />
+              Consulter les visiteurs
+            </Link>
+          </Button>
+
+          <Button
+            asChild
+            size="sm"
+            variant="outline"
+            className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10"
+          >
+            <a href="/" target="_blank" rel="noreferrer">
+              <ExternalLink aria-hidden="true" />
+              Ouvrir le formulaire
+            </a>
+          </Button>
+        </div>
+      </section>
 
       <Suspense fallback={<DashboardSkeleton />}>
         <DashboardContent />

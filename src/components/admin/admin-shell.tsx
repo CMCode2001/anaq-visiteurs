@@ -1,30 +1,27 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ExternalLink, LayoutDashboard, LogOut, Users } from "lucide-react";
+import { Menu } from "lucide-react";
 
-import { signOutAction } from "@/app/admin/actions";
+import { AdminSidebar, NAV_ITEMS } from "@/components/admin/admin-sidebar";
 import { BrandMark } from "@/components/brand-mark";
-import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import type { AdminIdentity } from "@/lib/auth/guards";
-import { cn } from "@/lib/utils";
+import { ORG } from "@/lib/constants";
 
-const NAV_ITEMS = [
-  {
-    href: "/admin/dashboard",
-    label: "Tableau de bord",
-    icon: LayoutDashboard,
-  },
-  {
-    href: "/admin/visitors",
-    label: "Visiteurs",
-    icon: Users,
-  },
-] as const;
-
-/** Coquille de l'espace administrateur : navigation, identité, déconnexion. */
+/**
+ * Coquille de l'espace d'administration.
+ *
+ * Bureau : rail lateral fixe a gauche, contenu a droite.
+ * Mobile : barre superieure avec un tiroir coulissant, meme navigation.
+ */
 export function AdminShell({
   identity,
   children,
@@ -33,79 +30,64 @@ export function AdminShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
 
-  const displayName = identity.fullName?.trim() || identity.email;
-  const initials = displayName.slice(0, 2).toUpperCase();
+  // Le tiroir se referme des que la route change.
+  React.useEffect(() => setDrawerOpen(false), [pathname]);
+
+  const current = NAV_ITEMS.find(
+    (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
+  );
 
   return (
-    <div className="min-h-dvh bg-background">
-      <header className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur no-print">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-          <Link href="/admin/dashboard" className="shrink-0">
-            <BrandMark height={32} tagline />
-          </Link>
+    <div className="min-h-dvh bg-background lg:flex">
+      {/* ---------------------------- Bureau ---------------------------- */}
+      <aside className="sticky top-0 hidden h-dvh w-[17rem] shrink-0 border-r border-border bg-card px-4 py-5 lg:block no-print">
+        <AdminSidebar identity={identity} />
+      </aside>
 
-          <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm" className="hidden md:inline-flex">
-              <Link href="/" target="_blank" rel="noreferrer">
-                <ExternalLink aria-hidden="true" />
-                Formulaire public
-              </Link>
-            </Button>
-
-            <div className="hidden items-center gap-2 rounded-md border border-border px-3 py-1.5 sm:flex">
-              <span
-                aria-hidden="true"
-                className="flex size-7 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-gold-ink"
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* ---------------------------- Mobile ---------------------------- */}
+        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-border bg-card/95 px-4 py-3 backdrop-blur lg:hidden no-print">
+          <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+            <SheetTrigger asChild>
+              <button
+                type="button"
+                className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
               >
-                {initials}
-              </span>
-              <span className="max-w-[14rem] truncate text-sm text-foreground">
-                {displayName}
-              </span>
-            </div>
+                <Menu className="size-5" aria-hidden="true" />
+                <span className="sr-only">Ouvrir le menu de navigation</span>
+              </button>
+            </SheetTrigger>
 
-            <form action={signOutAction}>
-              <Button type="submit" variant="outline" size="sm">
-                <LogOut aria-hidden="true" />
-                <span className="hidden sm:inline">Déconnexion</span>
-              </Button>
-            </form>
-          </div>
+            <SheetContent>
+              <SheetTitle className="sr-only">Navigation</SheetTitle>
+              <SheetDescription className="sr-only">
+                Accès au tableau de bord, aux visiteurs et au compte.
+              </SheetDescription>
+              <AdminSidebar
+                identity={identity}
+                onNavigate={() => setDrawerOpen(false)}
+              />
+            </SheetContent>
+          </Sheet>
+
+          <BrandMark height={26} />
+
+          <span className="ml-auto truncate text-sm font-medium text-muted-foreground">
+            {current?.label}
+          </span>
+        </header>
+
+        {/* Bandeau institutionnel : la denomination complete de l'ANAQ. */}
+        <div className="hidden border-b border-border bg-card/60 px-6 py-2.5 lg:block no-print">
+          <p className="text-xs font-light text-muted-foreground">{ORG.name}</p>
         </div>
 
-        <nav
-          aria-label="Navigation principale"
-          className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-4 sm:px-6"
-        >
-          {NAV_ITEMS.map((item) => {
-            const active =
-              pathname === item.href || pathname.startsWith(`${item.href}/`);
-            const Icon = item.icon;
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "-mb-px inline-flex items-center gap-2 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition-colors",
-                  active
-                    ? "border-primary text-gold-ink"
-                    : "border-transparent text-muted-foreground hover:text-foreground",
-                )}
-              >
-                <Icon className="size-4" aria-hidden="true" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-      </header>
-
-      <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
-        {children}
-      </main>
+        <main className="w-full flex-1 px-4 py-6 sm:px-6 lg:px-8">
+          <div className="mx-auto w-full max-w-6xl">{children}</div>
+        </main>
+      </div>
     </div>
   );
 }
