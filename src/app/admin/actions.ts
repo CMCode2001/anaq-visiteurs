@@ -65,7 +65,17 @@ export async function signInAction(
   });
 
   if (error) {
-    // Message volontairement générique : ne pas révéler si le compte existe.
+    // L'utilisateur ne voit qu'un message générique : révéler « email inconnu »
+    // ou « email non confirmé » indiquerait à un attaquant quels comptes
+    // existent. La cause réelle part en revanche dans les journaux serveur
+    // (Vercel > Logs), sans quoi une erreur de configuration serait
+    // indiagnosticable.
+    console.error("[admin/login] échec d'authentification", {
+      code: error.code,
+      status: error.status,
+      message: error.message,
+    });
+
     return { error: "Email ou mot de passe incorrect." };
   }
 
