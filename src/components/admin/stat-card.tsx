@@ -36,13 +36,13 @@ export function StatCard({
   tone = "gold",
 }: StatCardProps) {
   return (
-    <Card className="transition-shadow hover:shadow-md">
-      <CardContent className="flex items-start justify-between gap-4 p-5">
+    <Card className="min-w-0 transition-shadow hover:shadow-md">
+      <CardContent className="flex items-start justify-between gap-3 p-5">
         <div className="min-w-0 space-y-1">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <p className="truncate text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             {label}
           </p>
-          <p className="text-3xl font-bold leading-none tracking-tight tabular-nums text-foreground">
+          <p className="truncate text-3xl font-bold leading-none tracking-tight tabular-nums text-foreground">
             {NUMBER_FORMATTER.format(value)}
           </p>
           {hint ? (
@@ -55,7 +55,7 @@ export function StatCard({
         <span
           aria-hidden="true"
           className={cn(
-            "flex size-11 shrink-0 items-center justify-center rounded-2xl [&_svg]:size-5",
+            "flex size-10 shrink-0 items-center justify-center rounded-2xl [&_svg]:size-[18px]",
             TONES[tone],
           )}
         >

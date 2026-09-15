@@ -2,7 +2,6 @@ import Link from "next/link";
 import { ArrowDown, ArrowUp, ArrowUpDown, Users } from "lucide-react";
 
 import { VisitorRowActions } from "@/components/admin/visitor-row-actions";
-import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
   Table,
@@ -13,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatPhoneDisplay, telHref } from "@/lib/phone";
-import { cn, formatDateTime, truncate } from "@/lib/utils";
+import { cn, truncate } from "@/lib/utils";
 import { buildVisitorSearchParams } from "@/lib/validation/filters";
 import type {
   PaginatedVisitors,
@@ -25,7 +24,6 @@ const SORTABLE_COLUMNS: Array<{
   field: VisitorSortField;
   label: string;
 }> = [
-  { field: "created_at", label: "Date" },
   { field: "first_name", label: "Prénom" },
   { field: "last_name", label: "Nom" },
   { field: "country", label: "Pays" },
@@ -95,7 +93,6 @@ export function VisitorsTable({
                 query={query}
               />
             </TableHead>
-            <TableHead className="text-center">Consentement</TableHead>
             <TableHead className="text-right">
               <span className="sr-only">Actions</span>
             </TableHead>
@@ -108,9 +105,6 @@ export function VisitorsTable({
 
             return (
               <TableRow key={visitor.id}>
-                <TableCell className="whitespace-nowrap text-muted-foreground tabular-nums">
-                  {formatDateTime(visitor.createdAt)}
-                </TableCell>
 
                 <TableCell className="font-medium">
                   <Link
@@ -156,13 +150,6 @@ export function VisitorsTable({
                   {truncate(visitor.formationRequested, 48)}
                 </TableCell>
 
-                <TableCell className="text-center">
-                  {visitor.consentGiven ? (
-                    <Badge variant="success">Accordé</Badge>
-                  ) : (
-                    <Badge variant="destructive">Non</Badge>
-                  )}
-                </TableCell>
 
                 <TableCell className="text-right">
                   <VisitorRowActions

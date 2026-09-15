@@ -165,11 +165,6 @@ function drawFooter(doc: jsPDF) {
     doc.setFontSize(8);
     doc.setTextColor(...MUTED);
     doc.text(
-      "Document interne ANAQ-Sup - données à caractère personnel",
-      MARGIN,
-      pageHeight - 8,
-    );
-    doc.text(
       `Page ${page} / ${pageCount}`,
       pageWidth - MARGIN,
       pageHeight - 8,
@@ -223,26 +218,15 @@ export async function buildVisitorsPdf(
       if (data.pageNumber > 1) drawHeader(doc, title, logo);
     },
     head: [
-      [
-        "Date",
-        "Prénom",
-        "Nom",
-        "Pays",
-        "Téléphone",
-        "Email",
-        "Formation recherchée",
-        "Consent.",
-      ],
+      ["Prénom", "Nom", "Pays", "Téléphone", "Email", "Formation recherchée"],
     ],
     body: visitors.map((visitor) => [
-      formatDateTime(visitor.createdAt),
       visitor.firstName,
       visitor.lastName,
       visitor.country,
       formatPhoneDisplay(visitor.phone),
       visitor.email ?? "-",
       visitor.formationRequested,
-      visitor.consentGiven ? "Oui" : "Non",
     ]),
     styles: {
       font: "helvetica",
@@ -253,18 +237,15 @@ export async function buildVisitorsPdf(
     headStyles: { fillColor: BRAND, textColor: 255, fontStyle: "bold" },
     alternateRowStyles: { fillColor: [246, 247, 249] },
     // A4 paysage : 297 mm moins 28 mm de marges = 269 mm repartis ci-dessous.
-    // La colonne Pays est large : « Republique democratique du Congo » ou
-    // « Emirats arabes unis » se pliaient sur quatre lignes a 28 mm, ce qui
-    // rendait la colonne illisible.
+    // La colonne Pays reste large : « Republique democratique du Congo » se
+    // pliait sur quatre lignes quand elle etait etroite.
     columnStyles: {
-      0: { cellWidth: 27 }, // Date
-      1: { cellWidth: 26 }, // Prenom
-      2: { cellWidth: 26 }, // Nom
-      3: { cellWidth: 40 }, // Pays
-      4: { cellWidth: 30 }, // Telephone
-      5: { cellWidth: 46 }, // Email
-      6: { cellWidth: "auto" }, // Formation recherchee
-      7: { cellWidth: 15, halign: "center" },
+      0: { cellWidth: 32 }, // Prenom
+      1: { cellWidth: 32 }, // Nom
+      2: { cellWidth: 42 }, // Pays
+      3: { cellWidth: 34 }, // Telephone
+      4: { cellWidth: 55 }, // Email
+      5: { cellWidth: "auto" }, // Formation recherchee
     },
   });
 
