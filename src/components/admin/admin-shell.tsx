@@ -81,8 +81,11 @@ export function AdminShell({
           </div>
         </header>
 
+        {/* Pas de largeur maximale ici : la liste des visiteurs a besoin de
+            toute la place disponible, le tableau de bord et la fiche
+            detaillee se lisent mieux contenus. Chaque page decide. */}
         <main className="w-full flex-1 px-4 py-6 sm:px-6 lg:px-8">
-          <div className="mx-auto w-full max-w-6xl">{children}</div>
+          {children}
         </main>
       </div>
     </div>

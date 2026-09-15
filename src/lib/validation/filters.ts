@@ -17,6 +17,7 @@ export const visitorSortFields = [
   "last_name",
   "first_name",
   "country",
+  "establishment",
   "formation_requested",
 ] as const;
 

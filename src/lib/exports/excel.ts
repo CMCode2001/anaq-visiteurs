@@ -2,7 +2,11 @@ import * as XLSX from "xlsx";
 
 import { ORG } from "@/lib/constants";
 import { formatPhoneDisplay } from "@/lib/phone";
-import { formatDateTime } from "@/lib/utils";
+import {
+  formatDateTime,
+  formatFirstName,
+  formatLastName,
+} from "@/lib/utils";
 import { describePeriod } from "@/lib/validation/filters";
 import type { Visitor, VisitorQuery } from "@/types/visitor";
 
@@ -37,8 +41,8 @@ export function buildVisitorsWorkbook(
 ): Buffer {
   const rows = visitors.map((visitor) => [
     formatDateTime(visitor.createdAt),
-    visitor.firstName,
-    visitor.lastName,
+    formatFirstName(visitor.firstName),
+    formatLastName(visitor.lastName),
     visitor.country,
     formatPhoneDisplay(visitor.phone),
     visitor.email ?? "",

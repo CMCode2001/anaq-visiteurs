@@ -7,7 +7,11 @@ import type { UserOptions } from "jspdf-autotable";
 
 import { ORG } from "@/lib/constants";
 import { formatPhoneDisplay } from "@/lib/phone";
-import { formatDateTime } from "@/lib/utils";
+import {
+  formatDateTime,
+  formatFirstName,
+  formatLastName,
+} from "@/lib/utils";
 import { describePeriod } from "@/lib/validation/filters";
 import type { Visitor, VisitorQuery } from "@/types/visitor";
 
@@ -218,12 +222,21 @@ export async function buildVisitorsPdf(
       if (data.pageNumber > 1) drawHeader(doc, title, logo);
     },
     head: [
-      ["Prénom", "Nom", "Pays", "Téléphone", "Email", "Formation recherchée"],
+      [
+        "Prénom",
+        "Nom",
+        "Pays",
+        "Établissement",
+        "Téléphone",
+        "Email",
+        "Formation recherchée",
+      ],
     ],
     body: visitors.map((visitor) => [
-      visitor.firstName,
-      visitor.lastName,
+      formatFirstName(visitor.firstName),
+      formatLastName(visitor.lastName),
       visitor.country,
+      visitor.establishment ?? "-",
       formatPhoneDisplay(visitor.phone),
       visitor.email ?? "-",
       visitor.formationRequested,
@@ -237,15 +250,19 @@ export async function buildVisitorsPdf(
     headStyles: { fillColor: BRAND, textColor: 255, fontStyle: "bold" },
     alternateRowStyles: { fillColor: [246, 247, 249] },
     // A4 paysage : 297 mm moins 28 mm de marges = 269 mm repartis ci-dessous.
-    // La colonne Pays reste large : « Republique democratique du Congo » se
-    // pliait sur quatre lignes quand elle etait etroite.
+    //
+    // La colonne Pays fait 44 mm pour une raison precise : autoTable ne coupe
+    // que sur les espaces, et « Papouasie-Nouvelle-Guinee » mesure 36,5 mm en
+    // un seul mot insecable. Sous 42 mm, ce nom sortait de sa cellule.
+    // Mesure faite sur les 250 pays du referentiel.
     columnStyles: {
-      0: { cellWidth: 32 }, // Prenom
-      1: { cellWidth: 32 }, // Nom
-      2: { cellWidth: 42 }, // Pays
-      3: { cellWidth: 34 }, // Telephone
-      4: { cellWidth: 55 }, // Email
-      5: { cellWidth: "auto" }, // Formation recherchee
+      0: { cellWidth: 26 }, // Prenom
+      1: { cellWidth: 26 }, // Nom
+      2: { cellWidth: 44 }, // Pays
+      3: { cellWidth: 42 }, // Etablissement
+      4: { cellWidth: 30 }, // Telephone
+      5: { cellWidth: 46 }, // Email
+      6: { cellWidth: "auto" }, // Formation recherchee
     },
   });
 
@@ -285,8 +302,8 @@ export async function buildVisitorSheetPdf(visitor: Visitor): Promise<Buffer> {
     theme: "grid",
     head: [["Informations du visiteur", ""]],
     body: [
-      ["Prénom", visitor.firstName],
-      ["Nom", visitor.lastName],
+      ["Prénom", formatFirstName(visitor.firstName)],
+      ["Nom", formatLastName(visitor.lastName)],
       ["Pays d'origine", visitor.country],
       ["Téléphone", formatPhoneDisplay(visitor.phone)],
       ["Email", visitor.email ?? "-"],

@@ -22,7 +22,8 @@ export default async function VisitorsPage({
   const query = parseVisitorQuery(params);
 
   return (
-    <div className="space-y-5">
+    // Large : sept colonnes tiennent sans compression sur un grand ecran.
+    <div className="mx-auto w-full max-w-[112rem] space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Visiteurs</h1>

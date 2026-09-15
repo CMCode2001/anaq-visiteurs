@@ -12,7 +12,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatPhoneDisplay, telHref } from "@/lib/phone";
-import { cn, truncate } from "@/lib/utils";
+import {
+  cn,
+  formatFirstName,
+  formatFullName,
+  formatLastName,
+  truncate,
+} from "@/lib/utils";
 import { buildVisitorSearchParams } from "@/lib/validation/filters";
 import type {
   PaginatedVisitors,
@@ -84,6 +90,13 @@ export function VisitorsTable({
                 />
               </TableHead>
             ))}
+            <TableHead aria-sort={ariaSort(query, "establishment")}>
+              <SortLink
+                column="establishment"
+                label="Établissement"
+                query={query}
+              />
+            </TableHead>
             <TableHead>Téléphone</TableHead>
             <TableHead>Email</TableHead>
             <TableHead aria-sort={ariaSort(query, "formation_requested")}>
@@ -101,7 +114,7 @@ export function VisitorsTable({
 
         <TableBody>
           {result.items.map((visitor) => {
-            const fullName = `${visitor.firstName} ${visitor.lastName}`;
+            const fullName = formatFullName(visitor.firstName, visitor.lastName);
 
             return (
               <TableRow key={visitor.id}>
@@ -111,14 +124,25 @@ export function VisitorsTable({
                     href={`/admin/visitors/${visitor.id}`}
                     className="hover:text-gold-ink hover:underline"
                   >
-                    {visitor.firstName}
+                    {formatFirstName(visitor.firstName)}
                   </Link>
                 </TableCell>
 
-                <TableCell className="font-medium">
-                  {visitor.lastName}
+                <TableCell className="font-semibold">
+                  {formatLastName(visitor.lastName)}
                 </TableCell>
                 <TableCell>{visitor.country}</TableCell>
+
+                <TableCell
+                  className="max-w-[16rem]"
+                  title={visitor.establishment ?? undefined}
+                >
+                  {visitor.establishment ? (
+                    truncate(visitor.establishment, 36)
+                  ) : (
+                    <span className="text-muted-foreground">-</span>
+                  )}
+                </TableCell>
 
                 <TableCell className="whitespace-nowrap">
                   <a

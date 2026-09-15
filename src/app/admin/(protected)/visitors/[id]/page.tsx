@@ -29,7 +29,13 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { getVisitor } from "@/lib/services/visitors";
 import { formatPhoneDisplay, telHref } from "@/lib/phone";
-import { formatDateTime, initials } from "@/lib/utils";
+import {
+  formatDateTime,
+  formatFirstName,
+  formatFullName,
+  formatLastName,
+  initials,
+} from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Fiche visiteur" };
 
@@ -48,10 +54,10 @@ export default async function VisitorDetailPage({
   const visitor = await getVisitor(id);
   if (!visitor) notFound();
 
-  const fullName = `${visitor.firstName} ${visitor.lastName}`;
+  const fullName = formatFullName(visitor.firstName, visitor.lastName);
 
   return (
-    <div className="space-y-5">
+    <div className="mx-auto w-full max-w-5xl space-y-5">
       <Button asChild variant="ghost" size="sm" className="no-print">
         <Link href="/admin/visitors">
           <ArrowLeft aria-hidden="true" />
@@ -105,13 +111,13 @@ export default async function VisitorDetailPage({
             <DetailRow
               icon={<User className="size-4" />}
               label="Prénom"
-              value={visitor.firstName}
+              value={formatFirstName(visitor.firstName)}
             />
             <Separator />
             <DetailRow
               icon={<User className="size-4" />}
               label="Nom"
-              value={visitor.lastName}
+              value={formatLastName(visitor.lastName)}
             />
             <Separator />
             <DetailRow

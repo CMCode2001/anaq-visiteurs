@@ -34,6 +34,7 @@ export type VisitorSortField =
   | "last_name"
   | "first_name"
   | "country"
+  | "establishment"
   | "formation_requested";
 
 export type SortDirection = "asc" | "desc";
