@@ -2,17 +2,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import {
-  BarChart3,
-  ExternalLink,
   CalendarDays,
   CalendarRange,
   Clock3,
-  GraduationCap,
   Globe2,
+  GraduationCap,
+  TrendingUp,
   Users,
 } from "lucide-react";
 
 import { StatCard } from "@/components/admin/stat-card";
+import { DonutChart } from "@/components/charts/donut-chart";
 import { RankingChart } from "@/components/charts/ranking-chart";
 import { TrendChart } from "@/components/charts/trend-chart";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ import {
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { requireAdmin } from "@/lib/auth/guards";
-import { ORG } from "@/lib/constants";
+import { formatDateLong } from "@/lib/utils";
 import { getVisitorStats } from "@/lib/services/visitors";
 
 export const metadata: Metadata = { title: "Tableau de bord" };
@@ -36,44 +36,27 @@ export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const identity = await requireAdmin();
-  const greeting = (identity.fullName?.trim() || identity.email).split(" ")[0];
+  const prenom = (identity.fullName?.trim() || identity.email).split(" ")[0];
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Tableau de bord</h1>
-
-      {/* Bandeau d'accueil : rappelle l'identite de l'agent et ouvre sur les
-          deux actions les plus frequentes a la prise de poste. */}
-      <section className="overflow-hidden rounded-3xl bg-primary px-6 py-6 text-primary-foreground shadow-sm sm:px-8">
-        <p className="text-xl font-semibold sm:text-2xl">
-          Bonjour {greeting} 👋
-        </p>
-        <p className="mt-1 max-w-xl text-sm text-primary-foreground/80">
-          Fréquentation de l&apos;accueil et principales demandes
-          d&apos;information des visiteurs de l&apos;{ORG.shortName}.
-        </p>
-
-        <div className="mt-5 flex flex-wrap gap-2">
-          <Button asChild variant="navy" size="sm">
-            <Link href="/admin/visitors">
-              <Users aria-hidden="true" />
-              Consulter les visiteurs
-            </Link>
-          </Button>
-
-          <Button
-            asChild
-            size="sm"
-            variant="outline"
-            className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10"
-          >
-            <a href="/" target="_blank" rel="noreferrer">
-              <ExternalLink aria-hidden="true" />
-              Ouvrir le formulaire
-            </a>
-          </Button>
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Bonjour {prenom}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Fréquentation de l&apos;accueil · {formatDateLong(new Date())}
+          </p>
         </div>
-      </section>
+
+        <Button asChild variant="navy" size="sm">
+          <Link href="/admin/visitors">
+            <Users aria-hidden="true" />
+            Consulter les visiteurs
+          </Link>
+        </Button>
+      </header>
 
       <Suspense fallback={<DashboardSkeleton />}>
         <DashboardContent />
@@ -84,18 +67,41 @@ export default async function DashboardPage() {
 
 async function DashboardContent() {
   const stats = await getVisitorStats();
+  const vide = stats.total === 0;
+
+  if (vide) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <EmptyState
+            icon={<Users className="size-5" />}
+            title="Aucun visiteur enregistré pour le moment"
+            description="Les indicateurs et les graphiques apparaîtront dès la première fiche de présence remplie à l'accueil."
+            action={
+              <Button asChild variant="outline" size="sm">
+                <a href="/" target="_blank" rel="noreferrer">
+                  Ouvrir le formulaire public
+                </a>
+              </Button>
+            }
+          />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <section
         aria-label="Indicateurs de fréquentation"
         className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
       >
         <StatCard
-          label="Total des visiteurs"
+          label="Total"
           value={stats.total}
           hint="Depuis la mise en service"
           icon={<Users />}
+          tone="navy"
         />
         <StatCard
           label="Aujourd'hui"
@@ -109,6 +115,7 @@ async function DashboardContent() {
           value={stats.week}
           hint="Depuis lundi"
           icon={<CalendarDays />}
+          tone="gold"
         />
         <StatCard
           label="Ce mois-ci"
@@ -119,32 +126,55 @@ async function DashboardContent() {
         />
       </section>
 
+      {/* Tendance en pleine largeur : c'est le graphique qui se lit de loin. */}
       <Card>
-        <CardHeader>
-          <CardTitle>Fréquentation des 14 derniers jours</CardTitle>
-          <CardDescription>
-            Nombre de fiches de présence enregistrées par jour.
-          </CardDescription>
+        <CardHeader className="flex-row items-center justify-between space-y-0">
+          <div className="space-y-1">
+            <CardTitle>Fréquentation des 14 derniers jours</CardTitle>
+            <CardDescription>
+              Nombre de fiches enregistrées par jour.
+            </CardDescription>
+          </div>
+          <TrendingUp
+            className="hidden size-5 shrink-0 text-muted-foreground sm:block"
+            aria-hidden="true"
+          />
         </CardHeader>
         <CardContent>
-          {stats.total === 0 ? (
-            <EmptyState
-              icon={<BarChart3 className="size-5" />}
-              title="Aucune donnée à afficher"
-              description="Les statistiques apparaîtront dès le premier visiteur enregistré."
-            />
-          ) : (
-            <TrendChart data={stats.dailyTrend} />
-          )}
+          <TrendChart data={stats.dailyTrend} />
         </CardContent>
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Principales formations recherchées</CardTitle>
+            <CardTitle>Pays d&apos;origine</CardTitle>
             <CardDescription>
-              Les six demandes les plus fréquentes.
+              Répartition des visiteurs par provenance.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {stats.topCountries.length === 0 ? (
+              <EmptyState
+                icon={<Globe2 className="size-5" />}
+                title="Aucun pays enregistré"
+              />
+            ) : (
+              <DonutChart
+                data={stats.topCountries}
+                total={stats.total}
+                centerLabel="visiteurs"
+                ariaLabel="Répartition des visiteurs par pays d'origine"
+              />
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Formations les plus recherchées</CardTitle>
+            <CardDescription>
+              Les six demandes les plus fréquentes à l&apos;accueil.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -161,28 +191,6 @@ async function DashboardContent() {
             )}
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Principaux pays d&apos;origine</CardTitle>
-            <CardDescription>
-              Les six pays les plus représentés.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {stats.topCountries.length === 0 ? (
-              <EmptyState
-                icon={<Globe2 className="size-5" />}
-                title="Aucun pays enregistré"
-              />
-            ) : (
-              <RankingChart
-                data={stats.topCountries}
-                ariaLabel="Classement des pays d'origine les plus représentés"
-              />
-            )}
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
@@ -190,16 +198,16 @@ async function DashboardContent() {
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }).map((_, index) => (
-          <Skeleton key={index} className="h-[104px] w-full rounded-xl" />
+          <Skeleton key={index} className="h-[108px] w-full rounded-2xl" />
         ))}
       </div>
-      <Skeleton className="h-[320px] w-full rounded-xl" />
+      <Skeleton className="h-[330px] w-full rounded-2xl" />
       <div className="grid gap-4 lg:grid-cols-2">
-        <Skeleton className="h-[320px] w-full rounded-xl" />
-        <Skeleton className="h-[320px] w-full rounded-xl" />
+        <Skeleton className="h-[300px] w-full rounded-2xl" />
+        <Skeleton className="h-[300px] w-full rounded-2xl" />
       </div>
     </div>
   );

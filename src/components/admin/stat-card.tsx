@@ -8,42 +8,54 @@ interface StatCardProps {
   value: number;
   hint?: string;
   icon: React.ReactNode;
-  /** Teinte de l'icône, pour distinguer les indicateurs d'un coup d'œil. */
-  tone?: "primary" | "success" | "neutral";
+  /** Teinte de la pastille, pour distinguer les indicateurs d'un coup d'oeil. */
+  tone?: "gold" | "navy" | "success" | "neutral";
 }
 
 const TONES = {
-  primary: "bg-primary/20 text-gold-ink",
-  success: "bg-success/10 text-success",
+  gold: "bg-primary/20 text-gold-ink",
+  navy: "bg-navy/10 text-navy",
+  success: "bg-success/12 text-success",
   neutral: "bg-muted text-muted-foreground",
 } as const;
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("fr-FR");
 
+/**
+ * Indicateur chiffre.
+ *
+ * Le nombre domine la carte : c'est ce que l'agent cherche. Le libelle est
+ * au-dessus en petites capitales, la precision temporelle en dessous — cet
+ * ordre evite d'avoir a relire la carte pour savoir ce que le chiffre compte.
+ */
 export function StatCard({
   label,
   value,
   hint,
   icon,
-  tone = "primary",
+  tone = "gold",
 }: StatCardProps) {
   return (
-    <Card>
+    <Card className="transition-shadow hover:shadow-md">
       <CardContent className="flex items-start justify-between gap-4 p-5">
         <div className="min-w-0 space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">{label}</p>
-          <p className="text-3xl font-bold tracking-tight tabular-nums">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            {label}
+          </p>
+          <p className="text-3xl font-bold leading-none tracking-tight tabular-nums text-foreground">
             {NUMBER_FORMATTER.format(value)}
           </p>
           {hint ? (
-            <p className="truncate text-xs text-muted-foreground">{hint}</p>
+            <p className="truncate pt-0.5 text-xs text-muted-foreground">
+              {hint}
+            </p>
           ) : null}
         </div>
 
         <span
           aria-hidden="true"
           className={cn(
-            "flex size-12 shrink-0 items-center justify-center rounded-full [&_svg]:size-5",
+            "flex size-11 shrink-0 items-center justify-center rounded-2xl [&_svg]:size-5",
             TONES[tone],
           )}
         >

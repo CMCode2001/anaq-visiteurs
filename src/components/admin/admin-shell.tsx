@@ -42,7 +42,7 @@ export function AdminShell({
   return (
     <div className="min-h-dvh bg-background lg:flex">
       {/* ---------------------------- Bureau ---------------------------- */}
-      <aside className="sticky top-0 hidden h-dvh w-[17rem] shrink-0 border-r border-border bg-card px-4 py-5 lg:block no-print">
+      <aside className="sticky top-0 hidden h-dvh w-[17.5rem] shrink-0 bg-sidebar px-4 py-6 lg:block no-print">
         <AdminSidebar identity={identity} />
       </aside>
 

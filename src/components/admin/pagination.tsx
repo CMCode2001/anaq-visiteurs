@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+import { PageSizeSelect } from "@/components/admin/page-size-select";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { buildVisitorSearchParams } from "@/lib/validation/filters";
@@ -35,16 +36,20 @@ export function Pagination({
       aria-label="Pagination des visiteurs"
       className="flex flex-col items-center justify-between gap-3 sm:flex-row no-print"
     >
-      <p className="text-sm text-muted-foreground" aria-live="polite">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <p className="text-sm text-muted-foreground" aria-live="polite">
         Visiteurs{" "}
         <span className="font-medium text-foreground tabular-nums">
           {NUMBER_FORMATTER.format(first)}–{NUMBER_FORMATTER.format(last)}
         </span>{" "}
         sur{" "}
         <span className="font-medium text-foreground tabular-nums">
-          {NUMBER_FORMATTER.format(result.total)}
-        </span>
-      </p>
+            {NUMBER_FORMATTER.format(result.total)}
+          </span>
+        </p>
+
+        <PageSizeSelect pageSize={result.pageSize} />
+      </div>
 
       <div className="flex items-center gap-2">
         {hasPrevious ? (

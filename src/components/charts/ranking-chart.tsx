@@ -1,29 +1,15 @@
 "use client";
 
-import {
-  Bar,
-  BarChart,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-
-import type { CountBucket } from "@/types/visitor";
 import { truncate } from "@/lib/utils";
-
-const PALETTE = [
-  "var(--chart-1)",
-  "var(--chart-2)",
-  "var(--chart-3)",
-  "var(--chart-4)",
-  "var(--chart-5)",
-];
+import type { CountBucket } from "@/types/visitor";
 
 /**
- * Classement horizontal (formations recherchées, pays d'origine).
- * Barres horizontales : les libellés longs restent lisibles.
+ * Classement en barres horizontales.
+ *
+ * Volontairement en HTML et CSS plutot qu'en SVG : pour une dizaine de barres
+ * avec un libelle, une valeur et une part, le rendu natif est plus net, se
+ * redimensionne mieux et reste lisible par un lecteur d'ecran, la ou un
+ * graphique SVG n'est qu'une image opaque.
  */
 export function RankingChart({
   data,
@@ -32,57 +18,47 @@ export function RankingChart({
   data: CountBucket[];
   ariaLabel: string;
 }) {
-  const chartData = data.map((bucket) => ({
-    ...bucket,
-    short: truncate(bucket.label, 22),
-  }));
+  const max = Math.max(...data.map((bucket) => bucket.count), 1);
+  const total = data.reduce((sum, bucket) => sum + bucket.count, 0);
 
   return (
-    <div
-      role="img"
-      aria-label={ariaLabel}
-      style={{ height: Math.max(180, chartData.length * 42) }}
-    >
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart
-          data={chartData}
-          layout="vertical"
-          margin={{ top: 4, right: 28, bottom: 4, left: 4 }}
-          barCategoryGap={10}
-        >
-          <XAxis type="number" hide />
-          <YAxis
-            type="category"
-            dataKey="short"
-            width={140}
-            tickLine={false}
-            axisLine={false}
-            tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
-          />
-          <Tooltip
-            cursor={{ fill: "var(--muted)", opacity: 0.5 }}
-            contentStyle={{
-              borderRadius: 8,
-              border: "1px solid var(--border)",
-              background: "var(--card)",
-              color: "var(--card-foreground)",
-              fontSize: 12,
-            }}
-            formatter={(value: number) => [`${value} visiteur(s)`, ""]}
-            labelFormatter={(_label, payload) =>
-              payload?.[0]?.payload?.label ?? ""
-            }
-          />
-          <Bar dataKey="count" radius={[0, 6, 6, 0]} maxBarSize={26}>
-            {chartData.map((entry, index) => (
-              <Cell
-                key={entry.label}
-                fill={PALETTE[index % PALETTE.length]}
+    <ol aria-label={ariaLabel} className="space-y-3.5">
+      {data.map((bucket, index) => {
+        const width = Math.max(4, Math.round((bucket.count / max) * 100));
+        const share = total > 0 ? Math.round((bucket.count / total) * 100) : 0;
+
+        return (
+          <li key={bucket.label} className="space-y-1.5">
+            <div className="flex items-baseline justify-between gap-3 text-sm">
+              <span className="flex min-w-0 items-baseline gap-2">
+                <span className="w-4 shrink-0 text-xs tabular-nums text-muted-foreground">
+                  {index + 1}.
+                </span>
+                <span
+                  className="min-w-0 truncate font-medium text-foreground"
+                  title={bucket.label}
+                >
+                  {truncate(bucket.label, 34)}
+                </span>
+              </span>
+
+              <span className="shrink-0 tabular-nums text-muted-foreground">
+                <span className="font-semibold text-foreground">
+                  {bucket.count}
+                </span>{" "}
+                · {share} %
+              </span>
+            </div>
+
+            <div className="h-2 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-primary transition-[width] duration-500"
+                style={{ width: `${width}%` }}
               />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
+            </div>
+          </li>
+        );
+      })}
+    </ol>
   );
 }

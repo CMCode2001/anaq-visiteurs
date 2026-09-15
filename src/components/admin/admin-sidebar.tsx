@@ -31,7 +31,12 @@ export const NAV_ITEMS = [
 ] as const;
 
 /**
- * Contenu de la barre laterale : marque, navigation, compte et theme.
+ * Barre laterale de l'espace d'administration.
+ *
+ * Fond bleu de nuit dans les deux themes (jetons `--sidebar-*`) : c'est un
+ * element d'identite, pas une surface de contenu. Les contrastes sont
+ * verifies sur ce fond — 14,2:1 pour le texte principal, 6,1:1 pour le
+ * secondaire, 6,2:1 pour le libelle marine de l'element actif.
  *
  * Le meme composant sert au rail fixe du bureau et au tiroir mobile ;
  * `onNavigate` permet a ce dernier de se refermer apres un clic.
@@ -46,16 +51,21 @@ export function AdminSidebar({
   const pathname = usePathname();
 
   return (
-    <div className="flex h-full flex-col gap-6">
+    <div className="flex h-full flex-col gap-7 bg-sidebar text-sidebar-foreground">
       <Link
         href="/admin/dashboard"
         onClick={onNavigate}
-        className="rounded-xl px-2 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+        className="rounded-xl px-2 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       >
+        {/* Le logotype est dore sur fond transparent : il ressort sur le marine. */}
         <BrandMark height={30} />
       </Link>
 
-      <nav aria-label="Navigation principale" className="flex flex-col gap-1">
+      <nav aria-label="Navigation principale" className="flex flex-col gap-1.5">
+        <p className="px-4 pb-1 text-[11px] font-semibold uppercase tracking-wider text-sidebar-muted">
+          Navigation
+        </p>
+
         {NAV_ITEMS.map((item) => {
           const active =
             pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -68,14 +78,14 @@ export function AdminSidebar({
               onClick={onNavigate}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "inline-flex items-center gap-3 rounded-full px-4 py-2.5 text-sm font-medium transition-colors",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]",
+                "group inline-flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sidebar)]",
                 active
                   ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                  : "text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-foreground",
               )}
             >
-              <Icon className="size-4 shrink-0" aria-hidden="true" />
+              <Icon className="size-[18px] shrink-0" aria-hidden="true" />
               {item.label}
             </Link>
           );
@@ -85,17 +95,18 @@ export function AdminSidebar({
           href="/"
           target="_blank"
           rel="noreferrer"
-          className="mt-1 inline-flex items-center gap-3 rounded-full px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+          className="mt-1 inline-flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-sidebar-muted transition-colors hover:bg-sidebar-hover hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sidebar)]"
         >
-          <ExternalLink className="size-4 shrink-0" aria-hidden="true" />
+          <ExternalLink className="size-[18px] shrink-0" aria-hidden="true" />
           Formulaire public
+          <span className="sr-only">(nouvel onglet)</span>
         </a>
       </nav>
 
       {/* Compte et theme, ancres en bas de la barre. */}
       <div className="mt-auto space-y-3">
         <AccountMenu identity={identity} />
-        <ThemeToggle />
+        <ThemeToggle onSidebar />
       </div>
     </div>
   );
@@ -114,28 +125,28 @@ function AccountMenu({ identity }: { identity: AdminIdentity }) {
         <button
           type="button"
           className={cn(
-            "flex w-full items-center gap-3 rounded-2xl border border-border bg-background px-3 py-2.5 text-left transition-colors",
-            "hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]",
+            "flex w-full items-center gap-3 rounded-2xl border border-sidebar-border bg-sidebar-hover px-3 py-2.5 text-left transition-colors",
+            "hover:bg-white/12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sidebar)]",
           )}
         >
           <span
             aria-hidden="true"
-            className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-gold-ink"
+            className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground"
           >
             {initials}
           </span>
 
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm font-medium text-foreground">
+            <span className="block truncate text-sm font-medium text-sidebar-foreground">
               {displayName}
             </span>
-            <span className="block truncate text-xs text-muted-foreground">
+            <span className="block truncate text-xs text-sidebar-muted">
               {roleLabel}
             </span>
           </span>
 
           <ChevronsUpDown
-            className="size-4 shrink-0 text-muted-foreground"
+            className="size-4 shrink-0 text-sidebar-muted"
             aria-hidden="true"
           />
         </button>

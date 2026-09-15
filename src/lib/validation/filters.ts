@@ -110,3 +110,50 @@ function formatDay(isoDay: string) {
   const [year, month, day] = isoDay.split("-");
   return `${day}/${month}/${year}`;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Raccourcis de période                                                       */
+/* -------------------------------------------------------------------------- */
+
+export type PeriodPreset = "today" | "week" | "month" | "all";
+
+/** Bornes d'un raccourci, en jours UTC (« YYYY-MM-DD »). */
+export function periodRange(preset: PeriodPreset): {
+  from?: string;
+  to?: string;
+} {
+  if (preset === "all") return {};
+
+  const now = new Date();
+  const today = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  );
+  const to = day(today);
+
+  if (preset === "today") return { from: to, to };
+
+  if (preset === "week") {
+    const start = new Date(today);
+    start.setUTCDate(start.getUTCDate() - ((start.getUTCDay() + 6) % 7));
+    return { from: day(start), to };
+  }
+
+  const start = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1));
+  return { from: day(start), to };
+}
+
+/** Quel raccourci correspond exactement à l'intervalle courant ? */
+export function matchPeriodPreset(
+  from?: string,
+  to?: string,
+): PeriodPreset | null {
+  for (const preset of ["today", "week", "month", "all"] as const) {
+    const range = periodRange(preset);
+    if (range.from === from && range.to === to) return preset;
+  }
+  return null;
+}
+
+function day(date: Date) {
+  return date.toISOString().slice(0, 10);
+}

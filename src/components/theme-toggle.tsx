@@ -17,8 +17,16 @@ const OPTIONS = [
  * Deux boutons explicites plutot qu'un interrupteur : l'etat courant se lit
  * d'un coup d'oeil, sans avoir a deviner ce que fait l'icone. Le groupe est
  * expose comme un `radiogroup` aux technologies d'assistance.
+ *
+ * `onSidebar` adapte les couleurs au fond bleu de nuit de la barre laterale.
  */
-export function ThemeToggle({ className }: { className?: string }) {
+export function ThemeToggle({
+  className,
+  onSidebar = false,
+}: {
+  className?: string;
+  onSidebar?: boolean;
+}) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
@@ -31,7 +39,11 @@ export function ThemeToggle({ className }: { className?: string }) {
     return (
       <div
         aria-hidden="true"
-        className={cn("h-10 rounded-full bg-muted/60", className)}
+        className={cn(
+          "h-10 rounded-full",
+          onSidebar ? "bg-sidebar-hover" : "bg-muted/60",
+          className,
+        )}
       />
     );
   }
@@ -41,7 +53,8 @@ export function ThemeToggle({ className }: { className?: string }) {
       role="radiogroup"
       aria-label="Thème de l'interface"
       className={cn(
-        "flex items-center gap-1 rounded-full bg-muted/70 p-1",
+        "flex items-center gap-1 rounded-full p-1",
+        onSidebar ? "bg-sidebar-hover" : "bg-muted/70",
         className,
       )}
     >
@@ -58,10 +71,10 @@ export function ThemeToggle({ className }: { className?: string }) {
             onClick={() => setTheme(option.value)}
             className={cn(
               "inline-flex flex-1 items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]",
-              active
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+              active && "bg-primary text-primary-foreground shadow-sm",
+              !active && onSidebar && "text-sidebar-muted hover:text-sidebar-foreground",
+              !active && !onSidebar && "text-muted-foreground hover:text-foreground",
             )}
           >
             <Icon className="size-3.5" aria-hidden="true" />

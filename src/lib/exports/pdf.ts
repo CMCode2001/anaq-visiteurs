@@ -83,7 +83,14 @@ async function loadLogo(): Promise<{
   return null;
 }
 
-async function drawHeader(doc: jsPDF, title: string) {
+/**
+ * Dessine le bandeau institutionnel. Appele pour chaque page du rapport :
+ * un document de plusieurs pages doit porter son en-tete partout, pas
+ * seulement sur la premiere feuille.
+ */
+type Logo = { dataUrl: string; format: "PNG" | "JPEG" } | null;
+
+function drawHeader(doc: jsPDF, title: string, logo: Logo) {
   const pageWidth = doc.internal.pageSize.getWidth();
 
   doc.setFillColor(...BRAND);
@@ -93,7 +100,6 @@ async function drawHeader(doc: jsPDF, title: string) {
   doc.setFillColor(...GOLD);
   doc.rect(0, 26, pageWidth, 1.2, "F");
 
-  const logo = await loadLogo();
   let textLeft = MARGIN;
   let logoDrawn = false;
 
@@ -181,8 +187,10 @@ export async function buildVisitorsPdf(
   query: Pick<VisitorQuery, "from" | "to" | "search" | "country" | "formation">,
 ): Promise<Buffer> {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  const logo = await loadLogo();
+  const title = "Rapport - Fiche de présence des visiteurs";
 
-  await drawHeader(doc, "Rapport - Fiche de présence des visiteurs");
+  drawHeader(doc, title, logo);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
@@ -208,7 +216,12 @@ export async function buildVisitorsPdf(
 
   autoTable(doc, {
     startY: 47 + meta.length * 5,
-    margin: { left: MARGIN, right: MARGIN },
+    // `top` reserve la hauteur du bandeau sur les pages suivantes.
+    margin: { left: MARGIN, right: MARGIN, top: 34 },
+    // Un rapport de plusieurs pages doit porter son en-tete sur chacune.
+    didDrawPage: (data) => {
+      if (data.pageNumber > 1) drawHeader(doc, title, logo);
+    },
     head: [
       [
         "Date",
@@ -239,14 +252,19 @@ export async function buildVisitorsPdf(
     },
     headStyles: { fillColor: BRAND, textColor: 255, fontStyle: "bold" },
     alternateRowStyles: { fillColor: [246, 247, 249] },
+    // A4 paysage : 297 mm moins 28 mm de marges = 269 mm repartis ci-dessous.
+    // La colonne Pays est large : « Republique democratique du Congo » ou
+    // « Emirats arabes unis » se pliaient sur quatre lignes a 28 mm, ce qui
+    // rendait la colonne illisible.
     columnStyles: {
-      0: { cellWidth: 30 },
-      1: { cellWidth: 28 },
-      2: { cellWidth: 28 },
-      3: { cellWidth: 28 },
-      4: { cellWidth: 30 },
-      5: { cellWidth: 48 },
-      7: { cellWidth: 16, halign: "center" },
+      0: { cellWidth: 27 }, // Date
+      1: { cellWidth: 26 }, // Prenom
+      2: { cellWidth: 26 }, // Nom
+      3: { cellWidth: 40 }, // Pays
+      4: { cellWidth: 30 }, // Telephone
+      5: { cellWidth: 46 }, // Email
+      6: { cellWidth: "auto" }, // Formation recherchee
+      7: { cellWidth: 15, halign: "center" },
     },
   });
 
@@ -271,8 +289,9 @@ export async function buildVisitorsPdf(
 
 export async function buildVisitorSheetPdf(visitor: Visitor): Promise<Buffer> {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const logo = await loadLogo();
 
-  await drawHeader(doc, "Fiche visiteur");
+  drawHeader(doc, "Fiche visiteur", logo);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);

@@ -55,13 +55,7 @@ async function FiltersSection({
 }) {
   const facets = await getVisitorFacets();
 
-  return (
-    <VisitorsFilters
-      query={query}
-      countries={facets.countries}
-      formations={facets.formations}
-    />
-  );
+  return <VisitorsFilters query={query} countries={facets.countries} />;
 }
 
 async function VisitorsSection({
