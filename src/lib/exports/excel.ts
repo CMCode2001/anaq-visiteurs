@@ -28,12 +28,9 @@ const HEADERS = [
   "Établissement concerné",
   "Formation recherchée",
   "Consentement",
-  "Version du consentement",
-  "Date du consentement",
-  "Identifiant",
 ] as const;
 
-const COLUMN_WIDTHS = [20, 18, 18, 20, 18, 30, 34, 40, 14, 22, 20, 38];
+const COLUMN_WIDTHS = [20, 18, 18, 20, 18, 30, 34, 40, 14];
 
 export function buildVisitorsWorkbook(
   visitors: Visitor[],
@@ -49,9 +46,6 @@ export function buildVisitorsWorkbook(
     visitor.establishment ?? "",
     visitor.formationRequested,
     visitor.consentGiven ? "Oui" : "Non",
-    visitor.consentVersion ?? "",
-    formatDateTime(visitor.consentDate),
-    visitor.id,
   ]);
 
   const sheet = XLSX.utils.aoa_to_sheet([[...HEADERS], ...rows]);
