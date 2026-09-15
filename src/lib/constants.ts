@@ -14,8 +14,18 @@ export const ORG = {
     "ANAQ-Sup - Informations sur les établissements habilités et les programmes accrédités",
   /** Remplacer par l'URL officielle de la politique de confidentialité. */
   privacyPolicyUrl: "/politique-confidentialite",
-  /** Logo officiel, utilisé à l'écran, en favicon et dans les exports PDF. */
+  /** Logo officiel, utilisé à l'écran et dans les exports PDF. */
   logoPath: "/logo-anaqsup.png",
+  /**
+   * Favicon fourni : toque universitaire blanche sur fond transparent.
+   * Lisible sur une barre d'onglets sombre, invisible sur une barre claire.
+   */
+  faviconDark: "/favicon_anaq.png",
+  /**
+   * Même toque composée sur le marine institutionnel, pour les navigateurs
+   * en thème clair. Régénérable avec `npm run favicon`.
+   */
+  faviconLight: "/favicon-anaq-clair.png",
   /** Dimensions natives du logo, pour préserver ses proportions. */
   logoWidth: 801,
   logoHeight: 304,
