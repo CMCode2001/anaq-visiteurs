@@ -21,7 +21,7 @@ type Client = SupabaseClient<Database>;
 /** Colonnes sélectionnées : jamais `select('*')`, pour garder un contrat stable. */
 const COLUMNS =
   "id, first_name, last_name, country, phone, email, formation_requested, " +
-  "consent_given, consent_date, consent_version, created_at, updated_at";
+  "establishment, consent_given, consent_date, consent_version, created_at, updated_at";
 
 /** Nombre de lignes analysées pour les agrégats du tableau de bord. */
 const STATS_SAMPLE = 5_000;
@@ -50,6 +50,7 @@ export class SupabaseVisitorRepository implements VisitorRepository {
         phone: input.phone,
         email: input.email,
         formation_requested: input.formationRequested,
+        establishment: input.establishment,
         consent_given: input.consentGiven,
         consent_version: input.consentVersion,
         // created_at / updated_at / consent_date sont posés par les triggers
@@ -276,6 +277,7 @@ function applyFilters<T extends FilterableQuery<T>>(
           `phone.ilike.%${term}%`,
           `country.ilike.%${term}%`,
           `formation_requested.ilike.%${term}%`,
+          `establishment.ilike.%${term}%`,
         ].join(","),
       );
     }

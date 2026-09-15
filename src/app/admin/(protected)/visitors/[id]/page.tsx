@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import {
   ArrowLeft,
+  Building2,
   CalendarClock,
   FileDown,
   Globe2,
@@ -147,6 +148,12 @@ export default async function VisitorDetailPage({
                   "-"
                 )
               }
+            />
+            <Separator />
+            <DetailRow
+              icon={<Building2 className="size-4" />}
+              label="Établissement concerné"
+              value={visitor.establishment ?? "-"}
             />
             <Separator />
             <DetailRow

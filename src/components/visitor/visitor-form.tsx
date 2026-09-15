@@ -182,6 +182,27 @@ export function VisitorForm() {
         </FormField>
 
         <FormField
+          id="establishment"
+          label="Établissement concerné"
+          className="sm:col-span-2"
+          hint="Facultatif : laissez vide si votre question porte sur plusieurs établissements."
+          error={errors.establishment?.message}
+        >
+          <Input
+            id="establishment"
+            autoComplete="organization"
+            placeholder="Université Cheikh Anta Diop de Dakar"
+            aria-invalid={Boolean(errors.establishment)}
+            aria-describedby={describedBy(
+              "establishment",
+              true,
+              Boolean(errors.establishment),
+            )}
+            {...register("establishment")}
+          />
+        </FormField>
+
+        <FormField
           id="formationRequested"
           label="Formation recherchée"
           required

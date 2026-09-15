@@ -13,6 +13,7 @@ export interface CreateVisitorInput {
   phone: string;
   email: string | null;
   formationRequested: string;
+  establishment: string | null;
   consentGiven: true;
   consentVersion: string;
 }

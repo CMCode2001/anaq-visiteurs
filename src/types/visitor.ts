@@ -19,6 +19,8 @@ export interface Visitor {
   phone: string;
   email: string | null;
   formationRequested: string;
+  /** Etablissement sur lequel porte la recherche du visiteur (facultatif). */
+  establishment: string | null;
   consentGiven: boolean;
   consentDate: string | null;
   consentVersion: string | null;
@@ -82,6 +84,7 @@ export function toVisitor(row: VisitorRow): Visitor {
     phone: row.phone,
     email: row.email,
     formationRequested: row.formation_requested,
+    establishment: row.establishment,
     consentGiven: row.consent_given,
     consentDate: row.consent_date,
     consentVersion: row.consent_version,

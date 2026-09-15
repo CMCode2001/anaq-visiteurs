@@ -70,6 +70,15 @@ export const visitorFormSchema = z.object({
     .min(2, "Veuillez préciser la formation recherchée.")
     .max(500, "La formation ne doit pas dépasser 500 caractères."),
 
+  // Facultatif : un visiteur qui demande quels etablissements sont habilites
+  // pour une filiere n'a precisement pas d'etablissement a nommer.
+  establishment: z
+    .string()
+    .trim()
+    .max(200, "Le nom de l'établissement ne doit pas dépasser 200 caractères.")
+    .optional()
+    .or(z.literal("")),
+
   consentGiven: z.boolean().refine((value) => value === true, {
     message:
       "Vous devez accepter la collecte de vos données pour valider le formulaire.",
@@ -86,5 +95,6 @@ export const visitorFormDefaults: VisitorFormValues = {
   phone: "",
   email: "",
   formationRequested: "",
+  establishment: "",
   consentGiven: false,
 };

@@ -99,28 +99,24 @@ async function DashboardContent() {
         <StatCard
           label="Total"
           value={stats.total}
-          hint="Depuis la mise en service"
           icon={<Users />}
           tone="navy"
         />
         <StatCard
           label="Aujourd'hui"
           value={stats.today}
-          hint="Depuis minuit"
           icon={<Clock3 />}
           tone="success"
         />
         <StatCard
           label="Cette semaine"
           value={stats.week}
-          hint="Depuis lundi"
           icon={<CalendarDays />}
           tone="gold"
         />
         <StatCard
           label="Ce mois-ci"
           value={stats.month}
-          hint="Depuis le 1er du mois"
           icon={<CalendarRange />}
           tone="neutral"
         />
@@ -201,7 +197,7 @@ function DashboardSkeleton() {
     <div className="space-y-5">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }).map((_, index) => (
-          <Skeleton key={index} className="h-[108px] w-full rounded-2xl" />
+          <Skeleton key={index} className="h-[84px] w-full rounded-2xl" />
         ))}
       </div>
       <Skeleton className="h-[330px] w-full rounded-2xl" />

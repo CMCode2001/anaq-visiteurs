@@ -290,6 +290,7 @@ export async function buildVisitorSheetPdf(visitor: Visitor): Promise<Buffer> {
       ["Pays d'origine", visitor.country],
       ["Téléphone", formatPhoneDisplay(visitor.phone)],
       ["Email", visitor.email ?? "-"],
+      ["Établissement concerné", visitor.establishment ?? "-"],
       ["Formation recherchée", visitor.formationRequested],
       ["Consentement", visitor.consentGiven ? "Accordé" : "Non accordé"],
       ["Version du consentement", visitor.consentVersion ?? "-"],

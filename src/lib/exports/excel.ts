@@ -21,6 +21,7 @@ const HEADERS = [
   "Pays d'origine",
   "Téléphone",
   "Email",
+  "Établissement concerné",
   "Formation recherchée",
   "Consentement",
   "Version du consentement",
@@ -28,7 +29,7 @@ const HEADERS = [
   "Identifiant",
 ] as const;
 
-const COLUMN_WIDTHS = [20, 18, 18, 20, 18, 30, 40, 14, 22, 20, 38];
+const COLUMN_WIDTHS = [20, 18, 18, 20, 18, 30, 34, 40, 14, 22, 20, 38];
 
 export function buildVisitorsWorkbook(
   visitors: Visitor[],
@@ -41,6 +42,7 @@ export function buildVisitorsWorkbook(
     visitor.country,
     formatPhoneDisplay(visitor.phone),
     visitor.email ?? "",
+    visitor.establishment ?? "",
     visitor.formationRequested,
     visitor.consentGiven ? "Oui" : "Non",
     visitor.consentVersion ?? "",

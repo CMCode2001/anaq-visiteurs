@@ -28,6 +28,7 @@ export interface Database {
           phone: string;
           email: string | null;
           formation_requested: string;
+          establishment: string | null;
           consent_given: boolean;
           consent_date: string | null;
           consent_version: string | null;
@@ -42,6 +43,7 @@ export interface Database {
           phone: string;
           email?: string | null;
           formation_requested: string;
+          establishment: string | null;
           consent_given: boolean;
           consent_date?: string | null;
           consent_version?: string | null;

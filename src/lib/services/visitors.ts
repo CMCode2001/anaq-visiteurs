@@ -36,6 +36,7 @@ export async function registerVisitor(data: VisitorFormValues): Promise<void> {
     phone: data.phone,
     email: data.email || null,
     formationRequested: data.formationRequested,
+    establishment: data.establishment?.trim() || null,
     consentGiven: true,
     consentVersion: CONSENT_VERSION,
   });
