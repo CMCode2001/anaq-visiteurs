@@ -1,24 +1,16 @@
 import Link from "next/link";
 import { ArrowDown, ArrowUp, ArrowUpDown, Users } from "lucide-react";
 
-import { VisitorRowActions } from "@/components/admin/visitor-row-actions";
+import { VisitorRow } from "@/components/admin/visitor-row";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatPhoneDisplay, telHref } from "@/lib/phone";
-import {
-  cn,
-  formatFirstName,
-  formatFullName,
-  formatLastName,
-  truncate,
-} from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { buildVisitorSearchParams } from "@/lib/validation/filters";
 import type {
   PaginatedVisitors,
@@ -26,19 +18,22 @@ import type {
   VisitorSortField,
 } from "@/types/visitor";
 
-const SORTABLE_COLUMNS: Array<{
-  field: VisitorSortField;
-  label: string;
-}> = [
+const SORTABLE_COLUMNS: Array<{ field: VisitorSortField; label: string }> = [
   { field: "first_name", label: "Prénom" },
   { field: "last_name", label: "Nom" },
   { field: "country", label: "Pays" },
+  { field: "establishment", label: "Établissement" },
 ];
 
 /**
  * Tableau des visiteurs (Server Component).
+ *
  * Le tri passe par des liens : il fonctionne sans JavaScript et reste
- * partageable via l'URL.
+ * partageable via l’URL. Chaque ligne est déléguée à un composant client,
+ * seul à avoir besoin d’interactivité.
+ *
+ * L’email ne figure pas ici : il allongeait la ligne sans servir au repérage,
+ * et reste consultable sur la fiche détaillée et dans les exports.
  */
 export function VisitorsTable({
   result,
@@ -49,11 +44,7 @@ export function VisitorsTable({
 }) {
   if (result.items.length === 0) {
     const filtered = Boolean(
-      query.search ||
-      query.country ||
-      query.formation ||
-      query.from ||
-      query.to,
+      query.search || query.country || query.from || query.to,
     );
 
     return (
@@ -66,8 +57,8 @@ export function VisitorsTable({
         }
         description={
           filtered
-            ? "Modifiez la recherche, la période ou les filtres pour élargir les résultats."
-            : "Les fiches apparaîtront ici dès qu'un visiteur aura rempli le formulaire d'accueil."
+            ? "Modifiez la recherche, la période ou le pays pour élargir les résultats."
+            : "Les fiches apparaîtront ici dès qu’un visiteur aura rempli le formulaire d’accueil."
         }
       />
     );
@@ -90,15 +81,9 @@ export function VisitorsTable({
                 />
               </TableHead>
             ))}
-            <TableHead aria-sort={ariaSort(query, "establishment")}>
-              <SortLink
-                column="establishment"
-                label="Établissement"
-                query={query}
-              />
-            </TableHead>
+
             <TableHead>Téléphone</TableHead>
-            <TableHead>Email</TableHead>
+
             <TableHead aria-sort={ariaSort(query, "formation_requested")}>
               <SortLink
                 column="formation_requested"
@@ -106,6 +91,7 @@ export function VisitorsTable({
                 query={query}
               />
             </TableHead>
+
             <TableHead className="text-right">
               <span className="sr-only">Actions</span>
             </TableHead>
@@ -113,84 +99,16 @@ export function VisitorsTable({
         </TableHeader>
 
         <TableBody>
-          {result.items.map((visitor) => {
-            const fullName = formatFullName(visitor.firstName, visitor.lastName);
-
-            return (
-              <TableRow key={visitor.id}>
-
-                <TableCell className="font-medium">
-                  <Link
-                    href={`/admin/visitors/${visitor.id}`}
-                    className="hover:text-gold-ink hover:underline"
-                  >
-                    {formatFirstName(visitor.firstName)}
-                  </Link>
-                </TableCell>
-
-                <TableCell className="font-semibold">
-                  {formatLastName(visitor.lastName)}
-                </TableCell>
-                <TableCell>{visitor.country}</TableCell>
-
-                <TableCell
-                  className="max-w-[16rem]"
-                  title={visitor.establishment ?? undefined}
-                >
-                  {visitor.establishment ? (
-                    truncate(visitor.establishment, 36)
-                  ) : (
-                    <span className="text-muted-foreground">-</span>
-                  )}
-                </TableCell>
-
-                <TableCell className="whitespace-nowrap">
-                  <a
-                    href={telHref(visitor.phone)}
-                    className="hover:text-gold-ink hover:underline"
-                  >
-                    {formatPhoneDisplay(visitor.phone)}
-                  </a>
-                </TableCell>
-
-                <TableCell className="max-w-[16rem]">
-                  {visitor.email ? (
-                    <a
-                      href={`mailto:${visitor.email}`}
-                      className="block truncate hover:text-gold-ink hover:underline"
-                      title={visitor.email}
-                    >
-                      {visitor.email}
-                    </a>
-                  ) : (
-                    <span className="text-muted-foreground">-</span>
-                  )}
-                </TableCell>
-
-                <TableCell
-                  className="max-w-[18rem]"
-                  title={visitor.formationRequested}
-                >
-                  {truncate(visitor.formationRequested, 48)}
-                </TableCell>
-
-
-                <TableCell className="text-right">
-                  <VisitorRowActions
-                    visitorId={visitor.id}
-                    visitorName={fullName}
-                  />
-                </TableCell>
-              </TableRow>
-            );
-          })}
+          {result.items.map((visitor) => (
+            <VisitorRow key={visitor.id} visitor={visitor} />
+          ))}
         </TableBody>
       </Table>
     </div>
   );
 }
 
-/** Valeur `aria-sort` de la colonne, annoncée par les lecteurs d'écran. */
+/** Valeur `aria-sort` de la colonne, annoncée par les lecteurs d’écran. */
 function ariaSort(
   query: VisitorQuery,
   field: VisitorSortField,

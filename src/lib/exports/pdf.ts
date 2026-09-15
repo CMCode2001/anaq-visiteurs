@@ -44,6 +44,37 @@ function resolveAutoTable(module: unknown): AutoTableFn {
 
 const autoTable = resolveAutoTable(autoTableModule);
 
+/**
+ * Retire les signes diacritiques avant ecriture dans le PDF.
+ *
+ * jsPDF ecrit le texte en WinAnsi avec les polices standard, sans embarquer
+ * de fichier de police ni de table d'encodage explicite. Les visionneuses
+ * rendent alors les octets accentues de facon erratique : « Senegal »
+ * apparaissait lettre par lettre, « Guinee (Republique) » tronque.
+ *
+ * On produit donc un PDF strictement ASCII. C'est une perte typographique
+ * assumee, limitee aux exports PDF : l'ecran, l'export Excel et la base
+ * conservent les accents.
+ *
+ * La solution sans compromis serait d'embarquer une police Unicode complete
+ * (environ 300 Ko dans le bundle serveur) et de l'enregistrer via
+ * `doc.addFileToVFS` puis `doc.addFont`.
+ */
+function ascii(value: string | number | null | undefined) {
+  if (value === null || value === undefined) return "";
+  return String(value)
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[‘’]/g, "'")
+    .replace(/[“”]/g, '"')
+    .replace(/[–—]/g, "-")
+    .replace(/æ/g, "ae")
+    .replace(/Æ/g, "AE")
+    .replace(/œ/g, "oe")
+    .replace(/Œ/g, "OE")
+    .replace(/[^ -~]/g, "");
+}
+
 /** Marine institutionnel ANAQ-Sup (#042244) : bandeau d'en-tête et titres. */
 const BRAND: [number, number, number] = [4, 34, 68];
 const MUTED: [number, number, number] = [91, 107, 127];
@@ -139,23 +170,23 @@ function drawHeader(doc: jsPDF, title: string, logo: Logo) {
     // Le logotype porte déjà le sigle : on n'affiche que la dénomination.
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
-    doc.text(ORG.name, textLeft, 15, {
+    doc.text(ascii(ORG.name), textLeft, 15, {
       maxWidth: pageWidth - textLeft - MARGIN,
     });
   } else {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
-    doc.text(ORG.shortName, textLeft, 12);
+    doc.text(ascii(ORG.shortName), textLeft, 12);
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
-    doc.text(ORG.name, textLeft, 18);
+    doc.text(ascii(ORG.name), textLeft, 18);
   }
 
   doc.setTextColor(...BRAND);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
-  doc.text(title, MARGIN, 38);
+  doc.text(ascii(title), MARGIN, 38);
 }
 
 function drawFooter(doc: jsPDF) {
@@ -211,7 +242,7 @@ export async function buildVisitorsPdf(
     meta.push(`Filtres appliqués : ${activeFilters.join(" · ")}`);
   }
 
-  meta.forEach((line, index) => doc.text(line, MARGIN, 45 + index * 5));
+  meta.forEach((line, index) => doc.text(ascii(line), MARGIN, 45 + index * 5));
 
   autoTable(doc, {
     startY: 47 + meta.length * 5,
@@ -230,17 +261,19 @@ export async function buildVisitorsPdf(
         "Téléphone",
         "Email",
         "Formation recherchée",
-      ],
+      ].map(ascii),
     ],
-    body: visitors.map((visitor) => [
-      formatFirstName(visitor.firstName),
-      formatLastName(visitor.lastName),
-      visitor.country,
-      visitor.establishment ?? "-",
-      formatPhoneDisplay(visitor.phone),
-      visitor.email ?? "-",
-      visitor.formationRequested,
-    ]),
+    body: visitors.map((visitor) =>
+      [
+        formatFirstName(visitor.firstName),
+        formatLastName(visitor.lastName),
+        visitor.country,
+        visitor.establishment ?? "-",
+        formatPhoneDisplay(visitor.phone),
+        visitor.email ?? "-",
+        visitor.formationRequested,
+      ].map(ascii),
+    ),
     styles: {
       font: "helvetica",
       fontSize: 8,
@@ -270,7 +303,7 @@ export async function buildVisitorsPdf(
     doc.setTextColor(...MUTED);
     doc.setFontSize(10);
     doc.text(
-      "Aucun visiteur ne correspond aux critères sélectionnés.",
+      ascii("Aucun visiteur ne correspond aux critères sélectionnés."),
       MARGIN,
       47 + meta.length * 5 + 14,
     );
@@ -294,14 +327,15 @@ export async function buildVisitorSheetPdf(visitor: Visitor): Promise<Buffer> {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(...MUTED);
-  doc.text(`Date de génération : ${formatDateTime(new Date())}`, MARGIN, 45);
+  doc.text(ascii(`Date de génération : ${formatDateTime(new Date())}`), MARGIN, 45);
 
   autoTable(doc, {
     startY: 52,
     margin: { left: MARGIN, right: MARGIN },
     theme: "grid",
-    head: [["Informations du visiteur", ""]],
-    body: [
+    head: [[ascii("Informations du visiteur"), ""]],
+    body: (
+      [
       ["Prénom", formatFirstName(visitor.firstName)],
       ["Nom", formatLastName(visitor.lastName)],
       ["Pays d'origine", visitor.country],
@@ -314,7 +348,8 @@ export async function buildVisitorSheetPdf(visitor: Visitor): Promise<Buffer> {
       ["Date du consentement", formatDateTime(visitor.consentDate)],
       ["Date de création", formatDateTime(visitor.createdAt)],
       ["Identifiant", visitor.id],
-    ],
+      ] as Array<[string, string]>
+    ).map(([cle, valeur]) => [ascii(cle), ascii(valeur)]),
     styles: { font: "helvetica", fontSize: 10, cellPadding: 3 },
     headStyles: { fillColor: BRAND, textColor: 255, fontStyle: "bold" },
     columnStyles: {
