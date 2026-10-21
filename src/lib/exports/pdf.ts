@@ -3,8 +3,13 @@ import path from "node:path";
 
 import { jsPDF } from "jspdf";
 import * as autoTableModule from "jspdf-autotable";
-import type { UserOptions } from "jspdf-autotable";
+import type { CellHookData, UserOptions } from "jspdf-autotable";
 
+import {
+  describeArchiveScope,
+  monthLabel,
+  senderCategory,
+} from "@/lib/archive";
 import { ORG } from "@/lib/constants";
 import { formatPhoneDisplay } from "@/lib/phone";
 import {
@@ -13,10 +18,16 @@ import {
   formatLastName,
 } from "@/lib/utils";
 import { describePeriod } from "@/lib/validation/filters";
+import type {
+  ArchiveEntry,
+  ArchiveStats,
+  ResolvedArchiveQuery,
+} from "@/types/archive";
 import type { Visitor, VisitorQuery } from "@/types/visitor";
 
 /**
- * Génération des documents PDF (liste filtrée et fiche individuelle).
+ * Génération des documents PDF : liste filtrée et fiche individuelle des
+ * visiteurs, liste et statistiques des archives du service aux usagers.
  * Exécuté côté serveur uniquement (runtime Node.js).
  */
 
@@ -357,6 +368,364 @@ export async function buildVisitorSheetPdf(visitor: Visitor): Promise<Buffer> {
       1: { cellWidth: "auto" },
     },
   });
+
+  drawFooter(doc);
+
+  return Buffer.from(doc.output("arraybuffer"));
+}
+
+/* -------------------------------------------------------------------------- */
+/* Archives du service aux usagers : liste                                     */
+/* -------------------------------------------------------------------------- */
+
+/** Hauteur réservée au bandeau et au titre sur les pages suivantes. */
+const CONTINUED_PAGE_TOP = 44;
+
+export async function buildArchivePdf(
+  entries: ArchiveEntry[],
+  query: Pick<ResolvedArchiveQuery, "year" | "month" | "search">,
+): Promise<Buffer> {
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const logo = await loadLogo();
+  const title = `Archives - Service aux usagers ${query.year}`;
+
+  drawHeader(doc, title, logo);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(...MUTED);
+
+  const meta = [
+    `Période : ${describeArchiveScope(query.year, query.month)}`,
+    `Date de génération : ${formatDateTime(new Date())}`,
+    `Nombre de sollicitations : ${entries.length}`,
+    `Usagers distincts (par adresse email) : ${new Set(entries.map((entry) => entry.email)).size}`,
+  ];
+
+  if (query.search) meta.push(`Recherche : « ${query.search} »`);
+
+  meta.forEach((line, index) => doc.text(ascii(line), MARGIN, 45 + index * 5));
+
+  autoTable(doc, {
+    startY: 47 + meta.length * 5,
+    margin: { left: MARGIN, right: MARGIN, top: CONTINUED_PAGE_TOP },
+    didDrawPage: (data) => {
+      if (data.pageNumber > 1) drawHeader(doc, title, logo);
+    },
+    // « N° » perdrait son signe en ASCII : « No » reste lisible.
+    head: [["Mois", "No", "Nom de l'usager", "Email", "Catégorie"].map(ascii)],
+    body: entries.map((entry) =>
+      [
+        monthLabel(entry.month),
+        entry.lineNumber,
+        entry.fullName ?? "-",
+        entry.email,
+        senderCategory(entry.email),
+      ].map(ascii),
+    ),
+    styles: {
+      font: "helvetica",
+      fontSize: 8,
+      cellPadding: 2,
+      overflow: "linebreak",
+    },
+    headStyles: { fillColor: BRAND, textColor: 255, fontStyle: "bold" },
+    alternateRowStyles: { fillColor: [246, 247, 249] },
+    // A4 portrait : 210 mm moins 28 mm de marges = 182 mm.
+    // Une adresse de 45 caracteres tient sur une ligne en 70 mm,
+    // « Organisme senegalais » en 34 mm.
+    columnStyles: {
+      0: { cellWidth: 20 }, // Mois
+      1: { cellWidth: 10 }, // No
+      2: { cellWidth: 48 }, // Nom
+      3: { cellWidth: 70 }, // Email
+      4: { cellWidth: 34 }, // Categorie
+    },
+    didParseCell: alignRight([1]),
+  });
+
+  if (entries.length === 0) {
+    doc.setTextColor(...MUTED);
+    doc.setFontSize(10);
+    doc.text(
+      ascii("Aucune sollicitation ne correspond aux critères sélectionnés."),
+      MARGIN,
+      47 + meta.length * 5 + 14,
+    );
+  }
+
+  drawFooter(doc);
+
+  return Buffer.from(doc.output("arraybuffer"));
+}
+
+/* -------------------------------------------------------------------------- */
+/* Archives du service aux usagers : statistiques                              */
+/* -------------------------------------------------------------------------- */
+
+const NUMBER = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
+
+/** Part en pourcentage, arrondie à l'unité : « 42 % », « < 1 % ». */
+function share(count: number, total: number) {
+  if (total <= 0) return "-";
+  const percent = Math.round((count / total) * 100);
+  return count > 0 && percent === 0 ? "< 1 %" : `${percent} %`;
+}
+
+/**
+ * Aligne à droite les colonnes chiffrées, en-tête et total compris :
+ * `columnStyles` ne s'applique qu'au corps du tableau.
+ */
+function alignRight(columns: number[]) {
+  return (data: CellHookData) => {
+    if (columns.includes(data.column.index)) data.cell.styles.halign = "right";
+  };
+}
+
+function lastTableBottom(doc: jsPDF) {
+  return (
+    (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable
+      ?.finalY ?? 50
+  );
+}
+
+export async function buildArchiveStatsPdf(
+  stats: ArchiveStats,
+): Promise<Buffer> {
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const logo = await loadLogo();
+  const title = `Statistiques - Service aux usagers ${stats.year}`;
+  const pageHeight = doc.internal.pageSize.getHeight();
+
+  drawHeader(doc, title, logo);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(...MUTED);
+
+  const coverage =
+    stats.monthly.length > 0
+      ? `de janvier à ${monthLabel(stats.monthly.length).toLowerCase()} ${stats.year}`
+      : String(stats.year);
+
+  [
+    `Période couverte : ${coverage}`,
+    `Date de génération : ${formatDateTime(new Date())}`,
+    "Un usager est identifié par son adresse email.",
+  ].forEach((line, index) => doc.text(ascii(line), MARGIN, 45 + index * 5));
+
+  const tableDefaults = {
+    margin: { left: MARGIN, right: MARGIN, top: CONTINUED_PAGE_TOP },
+    didDrawPage: (data: { pageNumber: number }) => {
+      if (data.pageNumber > 1) drawHeader(doc, title, logo);
+    },
+    styles: { font: "helvetica", fontSize: 9, cellPadding: 2.2 },
+    headStyles: {
+      fillColor: BRAND,
+      textColor: 255,
+      fontStyle: "bold" as const,
+    },
+    alternateRowStyles: { fillColor: [246, 247, 249] as [number, number, number] },
+  };
+
+  /** Intitulé de section, avec saut de page s'il resterait orphelin. */
+  const section = (label: string, after: number) => {
+    let y = after + 10;
+    if (y > pageHeight - 40) {
+      doc.addPage();
+      drawHeader(doc, title, logo);
+      y = CONTINUED_PAGE_TOP + 4;
+    }
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(...BRAND);
+    doc.text(ascii(label), MARGIN, y);
+    return y + 3;
+  };
+
+  // 1. Indicateurs clés
+  const personal =
+    stats.categories.find((bucket) => bucket.label === "Particulier")?.count ??
+    0;
+
+  autoTable(doc, {
+    ...tableDefaults,
+    startY: section("Indicateurs clés", 57),
+    theme: "grid",
+    body: (
+      [
+        ["Sollicitations reçues", NUMBER.format(stats.total)],
+        ["Usagers distincts", NUMBER.format(stats.distinctUsers)],
+        [
+          "Usagers ayant écrit plusieurs fois",
+          `${NUMBER.format(stats.returningUsers)} (${share(stats.returningUsers, stats.distinctUsers)} des usagers)`,
+        ],
+        [
+          "Moyenne mensuelle",
+          `${NUMBER.format(stats.monthlyAverage)} sollicitations`,
+        ],
+        [
+          "Mois le plus chargé",
+          stats.busiestMonth
+            ? `${monthLabel(stats.busiestMonth.month)} (${stats.busiestMonth.count})`
+            : "-",
+        ],
+        [
+          "Part des messageries personnelles",
+          share(personal, stats.total),
+        ],
+      ] as Array<[string, string]>
+    ).map((row) => row.map(ascii)),
+    columnStyles: {
+      0: { cellWidth: 80, fontStyle: "bold", textColor: BRAND },
+      1: { cellWidth: "auto" },
+    },
+  });
+
+  // 2. Répartition mensuelle, avec une barre proportionnelle par mois
+  const maxCount = Math.max(1, ...stats.monthly.map((month) => month.count));
+
+  autoTable(doc, {
+    ...tableDefaults,
+    startY: section("Répartition mensuelle", lastTableBottom(doc)),
+    head: [
+      ["Mois", "Sollicitations", "Part", "Usagers distincts", "Volume"].map(
+        ascii,
+      ),
+    ],
+    body: stats.monthly.map((month) =>
+      [
+        monthLabel(month.month),
+        String(month.count),
+        share(month.count, stats.total),
+        String(month.distinctUsers),
+        "",
+      ].map(ascii),
+    ),
+    foot: [
+      [
+        "Total",
+        String(stats.total),
+        "100 %",
+        String(stats.distinctUsers),
+        "",
+      ],
+    ],
+    footStyles: { fillColor: [232, 237, 243], textColor: BRAND, fontStyle: "bold" },
+    columnStyles: {
+      0: { cellWidth: 32 },
+      1: { cellWidth: 28 },
+      2: { cellWidth: 18 },
+      3: { cellWidth: 32 },
+      4: { cellWidth: "auto" },
+    },
+    didParseCell: alignRight([1, 2, 3]),
+    didDrawCell: (data) => {
+      if (data.section !== "body" || data.column.index !== 4) return;
+      const count = stats.monthly[data.row.index]?.count ?? 0;
+      if (count === 0) return;
+
+      const width = Math.max(1, ((data.cell.width - 4) * count) / maxCount);
+      doc.setFillColor(...GOLD);
+      doc.roundedRect(
+        data.cell.x + 2,
+        data.cell.y + data.cell.height / 2 - 1.6,
+        width,
+        3.2,
+        0.8,
+        0.8,
+        "F",
+      );
+    },
+  });
+
+  // 3. Catégories d'expéditeurs
+  autoTable(doc, {
+    ...tableDefaults,
+    startY: section("Catégories d'expéditeurs", lastTableBottom(doc)),
+    head: [["Catégorie", "Sollicitations", "Part"].map(ascii)],
+    body: stats.categories.map((bucket) =>
+      [bucket.label, String(bucket.count), share(bucket.count, stats.total)].map(
+        ascii,
+      ),
+    ),
+    columnStyles: {
+      0: { cellWidth: "auto" },
+      1: { cellWidth: 32 },
+      2: { cellWidth: 22 },
+    },
+    didParseCell: alignRight([1, 2]),
+  });
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(...MUTED);
+  doc.text(
+    ascii(
+      "Catégorie déduite du domaine de l'adresse : messagerie grand public (particulier), domaine .sn (organisme sénégalais), autre domaine.",
+    ),
+    MARGIN,
+    lastTableBottom(doc) + 5,
+    { maxWidth: doc.internal.pageSize.getWidth() - MARGIN * 2 },
+  );
+
+  // 4. Messageries et domaines : les huit premiers, le reste regroupé
+  const topDomains = stats.domains.slice(0, 8);
+  const otherDomains = stats.domains
+    .slice(8)
+    .reduce((sum, bucket) => sum + bucket.count, 0);
+
+  autoTable(doc, {
+    ...tableDefaults,
+    startY: section("Messageries et domaines", lastTableBottom(doc) + 6),
+    head: [["Domaine", "Sollicitations", "Part"].map(ascii)],
+    body: [
+      ...topDomains,
+      ...(otherDomains > 0
+        ? [
+            {
+              label: `Autres domaines (${stats.domains.length - topDomains.length})`,
+              count: otherDomains,
+            },
+          ]
+        : []),
+    ].map((bucket) =>
+      [bucket.label, String(bucket.count), share(bucket.count, stats.total)].map(
+        ascii,
+      ),
+    ),
+    columnStyles: {
+      0: { cellWidth: "auto" },
+      1: { cellWidth: 32 },
+      2: { cellWidth: 22 },
+    },
+    didParseCell: alignRight([1, 2]),
+  });
+
+  // 5. Usagers récurrents
+  if (stats.topRequesters.length > 0) {
+    autoTable(doc, {
+      ...tableDefaults,
+      startY: section("Usagers les plus récurrents", lastTableBottom(doc)),
+      head: [["Usager", "Email", "Sollicitations", "Mois"].map(ascii)],
+      body: stats.topRequesters.map((requester) =>
+        [
+          requester.label === requester.email ? "-" : requester.label,
+          requester.email,
+          String(requester.count),
+          requester.months.map(monthLabel).join(", "),
+        ].map(ascii),
+      ),
+      styles: { ...tableDefaults.styles, fontSize: 8 },
+      columnStyles: {
+        0: { cellWidth: 44 },
+        1: { cellWidth: 60 },
+        2: { cellWidth: 24 },
+        3: { cellWidth: "auto" },
+      },
+      didParseCell: alignRight([2]),
+    });
+  }
 
   drawFooter(doc);
 

@@ -20,11 +20,14 @@ export function DonutChart({
   total,
   centerLabel,
   ariaLabel,
+  unit = "visiteur",
 }: {
   data: CountBucket[];
   total: number;
   centerLabel: string;
   ariaLabel: string;
+  /** Unité comptée, au singulier, pour l'infobulle. */
+  unit?: string;
 }) {
   const parts = React.useMemo(() => {
     const top = data.slice(0, 5);
@@ -63,7 +66,7 @@ export function DonutChart({
                   fontSize: 12,
                 }}
                 formatter={(value: number, name: string) => [
-                  `${value} visiteur${value > 1 ? "s" : ""}`,
+                  `${value} ${unit}${value > 1 ? "s" : ""}`,
                   name,
                 ]}
               />

@@ -7,7 +7,11 @@ import { VisitorsFilters } from "@/components/admin/visitors-filters";
 import { VisitorsTable } from "@/components/admin/visitors-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getVisitorFacets, listVisitors } from "@/lib/services/visitors";
-import { parseVisitorQuery, type RawSearchParams } from "@/lib/validation/filters";
+import {
+  buildVisitorSearchParams,
+  parseVisitorQuery,
+  type RawSearchParams,
+} from "@/lib/validation/filters";
 
 export const metadata: Metadata = { title: "Visiteurs" };
 
@@ -69,7 +73,16 @@ async function VisitorsSection({
   return (
     <div className="space-y-4">
       <VisitorsTable result={result} query={query} />
-      <Pagination result={result} query={query} />
+      <Pagination
+        result={result}
+        href={(page) => {
+          const params = buildVisitorSearchParams({ ...query, page });
+          const queryString = params.toString();
+          return queryString
+            ? `/admin/visitors?${queryString}`
+            : "/admin/visitors";
+        }}
+      />
     </div>
   );
 }

@@ -39,6 +39,11 @@ habilités y accèdent par l'URL directe)
 - Suppression avec confirmation obligatoire
 - Export **Excel** (`.xlsx`) et **PDF** de la liste filtrée
 - Génération d'une **fiche PDF individuelle**
+- **Archives du service aux usagers** : registre annuel des sollicitations
+  reçues par email (nom, adresse), consultable par mois, avec recherche,
+  exports Excel / PDF et page de statistiques exportable en PDF (volume
+  mensuel, usagers distincts et récurrents, catégories d'expéditeurs,
+  messageries)
 
 ---
 
@@ -79,11 +84,13 @@ src/
 │   │   └── (protected)/             # Groupe de routes protégées
 │   │       ├── layout.tsx           # requireAdmin() + coquille d'admin
 │   │       ├── dashboard/
-│   │       └── visitors/[id]/
+│   │       ├── visitors/[id]/
+│   │       └── archives/                # Liste + statistiques/
 │   └── api/
 │       ├── visitors/                # POST public (enregistrement)
 │       └── admin/
 │           ├── exports/excel|pdf/
+│           ├── exports/archives/excel|pdf|stats/
 │           └── visitors/[id]/pdf/
 │
 ├── components/
@@ -106,6 +113,7 @@ src/
 └── middleware.ts                    # Rafraîchissement de session + garde /admin
 
 supabase/migrations/                 # Schéma SQL, RLS, compte administrateur
+scripts/archive-docx-to-sql.mjs      # Registre Word → SQL d'import des archives
 ```
 
 **Séparation des responsabilités**
@@ -379,6 +387,37 @@ ajustez `regions` dans `vercel.json` (`fra1` = Francfort, `iad1` = Washington).
 > lien email ni redirection OAuth. Il faudra y ajouter l'URL Vercel le jour où
 > vous activerez la récupération de mot de passe ou les liens magiques.
 
+### 5.9 Importer les archives du service aux usagers
+
+Le service aux usagers tient un registre Word par année : une liste par
+mois, chaque ligne au format `Nom <adresse@email>`.
+
+1. **SQL Editor** → exécuter `supabase/migrations/0005_archive_entries.sql`
+   (table `archive_entries`, lecture réservée aux administrateurs par RLS)
+2. Convertir le registre en script SQL :
+
+   ```bash
+   mkdir -p supabase/private
+   node scripts/archive-docx-to-sql.mjs "SERVICE AUX USAGERS 2026.docx" > supabase/private/archives_2026.sql
+   ```
+
+   L'année est lue dans le titre du document ; la passer en second argument
+   si besoin. Le nombre de lignes reconnues par mois s'affiche : le comparer
+   au registre.
+3. **SQL Editor** → exécuter `supabase/private/archives_2026.sql`. Le script
+   est re-exécutable : une ligne déjà importée n'est jamais dupliquée.
+
+> ⚠️ Ce fichier contient des noms et des adresses email. **Le dépôt étant
+> public, il ne doit jamais être commité** : `supabase/private/` est ignoré
+> par Git pour cette raison.
+
+La rubrique **Archives** de l'espace administrateur affiche l'année la plus
+récente ; un sélecteur apparaît dès que plusieurs années sont importées.
+Chaque ligne du registre compte pour une sollicitation, doublons compris ; un
+usager est identifié par son adresse email. La catégorie d'expéditeur est
+déduite du domaine : messagerie grand public (particulier), domaine `.sn`
+(organisme sénégalais), autre domaine (autre organisme).
+
 ---
 
 ## 6. Personnalisation ANAQ-Sup
@@ -413,6 +452,9 @@ favicon et dans les en-têtes des exports PDF.
 | Excel     | `GET /api/admin/exports/excel`     | Feuille « Visiteurs » + feuille « Informations » (période, filtres, total) |
 | PDF liste | `GET /api/admin/exports/pdf`       | Logo, titre, période, date de génération, tableau, total                   |
 | PDF fiche | `GET /api/admin/visitors/[id]/pdf` | Fiche individuelle complète                                                |
+| Archives Excel | `GET /api/admin/exports/archives/excel` | Feuille « Archives » + feuille « Informations »                   |
+| Archives PDF   | `GET /api/admin/exports/archives/pdf`   | Liste des sollicitations de l'année ou du mois filtré             |
+| Statistiques   | `GET /api/admin/exports/archives/stats` | Indicateurs, répartition mensuelle, catégories, domaines, récurrents |
 
 Les filtres actifs de la liste (recherche, pays, formation, période, tri) sont
 transmis dans l'URL et appliqués à l'export. Nommage des fichiers :

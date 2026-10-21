@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ExternalLink, LayoutDashboard, Users } from "lucide-react";
+import { Archive, ExternalLink, LayoutDashboard, Users } from "lucide-react";
 
 import { BrandMark } from "@/components/brand-mark";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 export const NAV_ITEMS = [
   { href: "/admin/dashboard", label: "Tableau de bord", icon: LayoutDashboard },
   { href: "/admin/visitors", label: "Visiteurs", icon: Users },
+  { href: "/admin/archives", label: "Archives", icon: Archive },
 ] as const;
 
 /**

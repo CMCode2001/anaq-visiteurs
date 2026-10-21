@@ -5,10 +5,23 @@ import { toIsoDay } from "@/lib/utils";
  *   visiteurs_anaqsup_2026-09-14.xlsx
  *   visiteurs_anaqsup_2026-09-14.pdf
  *   fiche_visiteur_diallo_awa_2026-09-14.pdf
+ *   archives_usagers_anaqsup_2026_2026-10-21.pdf
+ *   statistiques_usagers_anaqsup_2026_2026-10-21.pdf
  */
 
 export function visitorsExportFilename(extension: "xlsx" | "pdf") {
   return `visiteurs_anaqsup_${toIsoDay()}.${extension}`;
+}
+
+export function archiveExportFilename(
+  year: number,
+  extension: "xlsx" | "pdf",
+) {
+  return `archives_usagers_anaqsup_${year}_${toIsoDay()}.${extension}`;
+}
+
+export function archiveStatsFilename(year: number) {
+  return `statistiques_usagers_anaqsup_${year}_${toIsoDay()}.pdf`;
 }
 
 export function visitorSheetFilename(firstName: string, lastName: string) {
