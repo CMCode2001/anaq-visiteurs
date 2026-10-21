@@ -1,10 +1,11 @@
 import "server-only";
 
-import { computeArchiveStats } from "@/lib/archive";
+import { composeArchiveName, computeArchiveStats } from "@/lib/archive";
 import { EXPORT_MAX_ROWS } from "@/lib/constants";
 import { getArchiveRepository } from "@/lib/repositories";
 import type {
   ArchiveEntry,
+  ArchiveEntryPosition,
   ArchiveQuery,
   ArchiveStats,
   PaginatedArchive,
@@ -13,8 +14,26 @@ import type {
 
 /**
  * Logique métier « archives du service aux usagers ».
- * Lectures réservées aux administrateurs (protégées par RLS).
+ * Lectures et ajouts réservés aux administrateurs (protégés par RLS).
  */
+
+/**
+ * Ajoute une sollicitation reçue ce mois-ci.
+ *
+ * Contrairement aux visiteurs, la casse du nom est fixée au stockage : le
+ * registre ne garde qu'un nom complet, prénom et nom n'y sont plus séparables.
+ */
+export async function addArchiveEntry(input: {
+  firstName: string;
+  lastName: string;
+  email: string;
+}): Promise<ArchiveEntryPosition> {
+  const repository = await getArchiveRepository();
+  return repository.create({
+    fullName: composeArchiveName(input.firstName, input.lastName),
+    email: input.email,
+  });
+}
 
 /**
  * Fixe l'année consultée : celle de l'URL si elle existe en base, à défaut

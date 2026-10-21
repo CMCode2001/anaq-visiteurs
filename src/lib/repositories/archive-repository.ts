@@ -1,5 +1,7 @@
 import type {
   ArchiveEntry,
+  ArchiveEntryPosition,
+  CreateArchiveEntryInput,
   PaginatedArchive,
   ResolvedArchiveQuery,
 } from "@/types/archive";
@@ -7,10 +9,16 @@ import type {
 /**
  * Contrat d'accès aux archives du service aux usagers.
  *
- * Lecture seule : les archives sont importées une fois pour toutes depuis le
- * registre Word, l'application ne les modifie jamais.
+ * Le registre Word est importé une fois pour toutes ; l'application y ajoute
+ * ensuite les nouvelles sollicitations, sans jamais modifier les anciennes.
  */
 export interface ArchiveRepository {
+  /**
+   * Ajoute une sollicitation au mois en cours. L'année, le mois et le
+   * numéro de ligne sont attribués par la base, puis retournés.
+   */
+  create(input: CreateArchiveEntryInput): Promise<ArchiveEntryPosition>;
+
   /** Liste paginée, filtrée et triée. */
   list(query: ResolvedArchiveQuery): Promise<PaginatedArchive>;
 

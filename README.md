@@ -43,7 +43,9 @@ habilités y accèdent par l'URL directe)
   reçues par email (nom, adresse), consultable par mois, avec recherche,
   exports Excel / PDF et page de statistiques exportable en PDF (volume
   mensuel, usagers distincts et récurrents, catégories d'expéditeurs,
-  messageries)
+  messageries). Bouton **Ajouter** pour enregistrer une nouvelle
+  sollicitation (prénom, nom, email), avec détection immédiate de la
+  catégorie d'expéditeur
 
 ---
 
@@ -410,6 +412,11 @@ mois, chaque ligne au format `Nom <adresse@email>`.
 > ⚠️ Ce fichier contient des noms et des adresses email. **Le dépôt étant
 > public, il ne doit jamais être commité** : `supabase/private/` est ignoré
 > par Git pour cette raison.
+
+4. **SQL Editor** → exécuter `supabase/migrations/0006_archive_entries_insert.sql`
+   pour activer le bouton **Ajouter** (écriture réservée aux administrateurs).
+   Une sollicitation ajoutée rejoint le mois en cours : l'année, le mois et
+   le numéro de ligne sont attribués par la base, jamais par le navigateur.
 
 La rubrique **Archives** de l'espace administrateur affiche l'année la plus
 récente ; un sélecteur apparaît dès que plusieurs années sont importées.

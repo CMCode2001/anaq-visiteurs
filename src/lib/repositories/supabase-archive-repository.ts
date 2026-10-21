@@ -8,7 +8,9 @@ import type { Database } from "@/types/database";
 import {
   toArchiveEntry,
   type ArchiveEntry,
+  type ArchiveEntryPosition,
   type ArchiveEntryRow,
+  type CreateArchiveEntryInput,
   type PaginatedArchive,
   type ResolvedArchiveQuery,
 } from "@/types/archive";
@@ -25,10 +27,28 @@ const BATCH_SIZE = 1_000;
 
 /**
  * Implémentation Supabase du contrat `ArchiveRepository`.
- * La lecture est réservée aux administrateurs par RLS.
+ * Lecture et ajout sont réservés aux administrateurs par RLS.
  */
 export class SupabaseArchiveRepository implements ArchiveRepository {
   constructor(private readonly client: Client) {}
+
+  async create(input: CreateArchiveEntryInput): Promise<ArchiveEntryPosition> {
+    // Ni année, ni mois, ni numéro : le trigger de la migration 0006 les pose.
+    const { data, error } = await this.client
+      .from("archive_entries")
+      .insert({ full_name: input.fullName, email: input.email })
+      .select("year, month, line_number")
+      .single();
+
+    if (error || !data) {
+      throw new ArchiveRepositoryError(
+        "Impossible d'ajouter la sollicitation.",
+        error,
+      );
+    }
+
+    return { year: data.year, month: data.month, lineNumber: data.line_number };
+  }
 
   async list(query: ResolvedArchiveQuery): Promise<PaginatedArchive> {
     const page = Math.max(1, query.page);
