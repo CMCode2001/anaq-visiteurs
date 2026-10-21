@@ -18,3 +18,7 @@ public/flags/
 
 # Build de vérification lancé en parallèle du serveur de dev
 .next-build/
+
+# Imports d'archives : donnees personnelles, jamais versionnees (depot public).
+# Voir scripts/archive-docx-to-sql.mjs et la migration 0005.
+supabase/private/

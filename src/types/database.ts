@@ -73,6 +73,30 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["admin_users"]["Insert"]>;
         Relationships: [];
       };
+      archive_entries: {
+        Row: {
+          id: string;
+          year: number;
+          month: number;
+          line_number: number;
+          full_name: string | null;
+          email: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          year: number;
+          month: number;
+          line_number: number;
+          full_name?: string | null;
+          email: string;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["archive_entries"]["Insert"]
+        >;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {

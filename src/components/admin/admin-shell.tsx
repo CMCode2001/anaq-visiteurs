@@ -64,7 +64,7 @@ export function AdminShell({
             <SheetContent>
               <SheetTitle className="sr-only">Navigation</SheetTitle>
               <SheetDescription className="sr-only">
-                Accès au tableau de bord, aux visiteurs et au compte.
+                Accès au tableau de bord, aux visiteurs, aux archives et au compte.
               </SheetDescription>
               <AdminSidebar onNavigate={() => setDrawerOpen(false)} />
             </SheetContent>

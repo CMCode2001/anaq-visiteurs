@@ -1,5 +1,11 @@
 import * as XLSX from "xlsx";
 
+import {
+  describeArchiveScope,
+  emailDomain,
+  monthLabel,
+  senderCategory,
+} from "@/lib/archive";
 import { ORG } from "@/lib/constants";
 import { formatPhoneDisplay } from "@/lib/phone";
 import {
@@ -8,6 +14,7 @@ import {
   formatLastName,
 } from "@/lib/utils";
 import { describePeriod } from "@/lib/validation/filters";
+import type { ArchiveEntry, ResolvedArchiveQuery } from "@/types/archive";
 import type { Visitor, VisitorQuery } from "@/types/visitor";
 
 /**
@@ -79,6 +86,76 @@ export function buildVisitorsWorkbook(
   workbook.Props = {
     Title: "Liste des visiteurs ANAQ-Sup",
     Subject: ORG.formTitle,
+    Author: ORG.shortName,
+    CreatedDate: new Date(),
+  };
+
+  return XLSX.write(workbook, { type: "buffer", bookType: "xlsx" }) as Buffer;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Archives du service aux usagers                                             */
+/* -------------------------------------------------------------------------- */
+
+const ARCHIVE_HEADERS = [
+  "Année",
+  "Mois",
+  "N°",
+  "Nom de l'usager",
+  "Email",
+  "Domaine",
+  "Catégorie",
+] as const;
+
+const ARCHIVE_COLUMN_WIDTHS = [8, 12, 6, 34, 40, 24, 22];
+
+export function buildArchiveWorkbook(
+  entries: ArchiveEntry[],
+  query: Pick<ResolvedArchiveQuery, "year" | "month" | "search">,
+): Buffer {
+  const rows = entries.map((entry) => [
+    entry.year,
+    monthLabel(entry.month),
+    entry.lineNumber,
+    entry.fullName ?? "",
+    entry.email,
+    emailDomain(entry.email),
+    senderCategory(entry.email),
+  ]);
+
+  const sheet = XLSX.utils.aoa_to_sheet([[...ARCHIVE_HEADERS], ...rows]);
+  sheet["!cols"] = ARCHIVE_COLUMN_WIDTHS.map((width) => ({ wch: width }));
+  sheet["!autofilter"] = {
+    ref: XLSX.utils.encode_range({
+      s: { r: 0, c: 0 },
+      e: { r: Math.max(rows.length, 1), c: ARCHIVE_HEADERS.length - 1 },
+    }),
+  };
+
+  const info = XLSX.utils.aoa_to_sheet([
+    [`Archives - Service aux usagers ${query.year}`],
+    [ORG.name],
+    [],
+    ["Date de génération", formatDateTime(new Date())],
+    ["Période", describeArchiveScope(query.year, query.month)],
+    ["Recherche", query.search ?? "-"],
+    ["Nombre de sollicitations", entries.length],
+    [
+      "Usagers distincts (par adresse email)",
+      new Set(entries.map((entry) => entry.email)).size,
+    ],
+    [],
+    ["Document interne ANAQ-Sup - contient des données à caractère personnel."],
+  ]);
+  info["!cols"] = [{ wch: 36 }, { wch: 44 }];
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, sheet, "Archives");
+  XLSX.utils.book_append_sheet(workbook, info, "Informations");
+
+  workbook.Props = {
+    Title: `Archives du service aux usagers ${query.year}`,
+    Subject: "Service aux usagers",
     Author: ORG.shortName,
     CreatedDate: new Date(),
   };

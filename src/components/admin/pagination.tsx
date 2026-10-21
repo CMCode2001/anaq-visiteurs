@@ -4,46 +4,51 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { PageSizeSelect } from "@/components/admin/page-size-select";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { buildVisitorSearchParams } from "@/lib/validation/filters";
-import type { PaginatedVisitors, VisitorQuery } from "@/types/visitor";
 
 const NUMBER_FORMATTER = new Intl.NumberFormat("fr-FR");
 
-/** Pagination par liens : fonctionne sans JavaScript, indexable par le clavier. */
+interface PageInfo {
+  total: number;
+  page: number;
+  pageSize: number;
+  pageCount: number;
+}
+
+/**
+ * Pagination par liens : fonctionne sans JavaScript, indexable par le clavier.
+ * Commune aux visiteurs et aux archives : `href` construit le lien d'une page
+ * à partir des filtres propres à chaque liste.
+ */
 export function Pagination({
   result,
-  query,
+  href,
+  itemLabel = "Visiteurs",
 }: {
-  result: PaginatedVisitors;
-  query: VisitorQuery;
+  result: PageInfo;
+  href: (page: number) => string;
+  itemLabel?: string;
 }) {
   if (result.total === 0) return null;
 
   const first = (result.page - 1) * result.pageSize + 1;
   const last = Math.min(result.page * result.pageSize, result.total);
 
-  const href = (page: number) => {
-    const params = buildVisitorSearchParams({ ...query, page });
-    const queryString = params.toString();
-    return queryString ? `/admin/visitors?${queryString}` : "/admin/visitors";
-  };
-
   const hasPrevious = result.page > 1;
   const hasNext = result.page < result.pageCount;
 
   return (
     <nav
-      aria-label="Pagination des visiteurs"
+      aria-label={`Pagination : ${itemLabel.toLowerCase()}`}
       className="flex flex-col items-center justify-between gap-3 sm:flex-row no-print"
     >
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <p className="text-sm text-muted-foreground" aria-live="polite">
-        Visiteurs{" "}
-        <span className="font-medium text-foreground tabular-nums">
-          {NUMBER_FORMATTER.format(first)}–{NUMBER_FORMATTER.format(last)}
-        </span>{" "}
-        sur{" "}
-        <span className="font-medium text-foreground tabular-nums">
+          {itemLabel}{" "}
+          <span className="font-medium text-foreground tabular-nums">
+            {NUMBER_FORMATTER.format(first)}–{NUMBER_FORMATTER.format(last)}
+          </span>{" "}
+          sur{" "}
+          <span className="font-medium text-foreground tabular-nums">
             {NUMBER_FORMATTER.format(result.total)}
           </span>
         </p>

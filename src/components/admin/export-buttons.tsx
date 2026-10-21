@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 
 type ExportKind = "excel" | "pdf";
 
-const ENDPOINTS: Record<ExportKind, string> = {
+const VISITOR_ENDPOINTS: Record<ExportKind, string> = {
   excel: "/api/admin/exports/excel",
   pdf: "/api/admin/exports/pdf",
 };
@@ -20,8 +20,17 @@ const ENDPOINTS: Record<ExportKind, string> = {
  * Le téléchargement passe par `fetch` plutôt que par un lien direct afin de
  * pouvoir afficher un état de chargement et un message d'erreur lisible si
  * la génération échoue côté serveur.
+ *
+ * Par défaut, exports de la liste des visiteurs. `endpoints` les redirige
+ * vers une autre liste ; un format absent n'affiche pas son bouton.
  */
-export function ExportButtons({ disabled = false }: { disabled?: boolean }) {
+export function ExportButtons({
+  disabled = false,
+  endpoints = VISITOR_ENDPOINTS,
+}: {
+  disabled?: boolean;
+  endpoints?: Partial<Record<ExportKind, string>>;
+}) {
   const searchParams = useSearchParams();
   const [pending, setPending] = React.useState<ExportKind | null>(null);
 
@@ -30,7 +39,7 @@ export function ExportButtons({ disabled = false }: { disabled?: boolean }) {
 
     try {
       const response = await fetch(
-        `${ENDPOINTS[kind]}?${searchParams.toString()}`,
+        `${endpoints[kind]}?${searchParams.toString()}`,
       );
 
       if (!response.ok) {
@@ -43,7 +52,7 @@ export function ExportButtons({ disabled = false }: { disabled?: boolean }) {
       const blob = await response.blob();
       const filename =
         parseFilename(response.headers.get("Content-Disposition")) ??
-        `visiteurs_anaqsup.${kind === "excel" ? "xlsx" : "pdf"}`;
+        `anaqsup.${kind === "excel" ? "xlsx" : "pdf"}`;
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -69,33 +78,37 @@ export function ExportButtons({ disabled = false }: { disabled?: boolean }) {
 
   return (
     <div className="flex flex-wrap gap-2 no-print">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => download("excel")}
-        disabled={disabled || pending !== null}
-      >
-        {pending === "excel" ? (
-          <Loader2 className="animate-spin" aria-hidden="true" />
-        ) : (
-          <FileSpreadsheet aria-hidden="true" />
-        )}
-        Exporter Excel
-      </Button>
+      {endpoints.excel ? (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => download("excel")}
+          disabled={disabled || pending !== null}
+        >
+          {pending === "excel" ? (
+            <Loader2 className="animate-spin" aria-hidden="true" />
+          ) : (
+            <FileSpreadsheet aria-hidden="true" />
+          )}
+          Exporter Excel
+        </Button>
+      ) : null}
 
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => download("pdf")}
-        disabled={disabled || pending !== null}
-      >
-        {pending === "pdf" ? (
-          <Loader2 className="animate-spin" aria-hidden="true" />
-        ) : (
-          <FileText aria-hidden="true" />
-        )}
-        Exporter PDF
-      </Button>
+      {endpoints.pdf ? (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => download("pdf")}
+          disabled={disabled || pending !== null}
+        >
+          {pending === "pdf" ? (
+            <Loader2 className="animate-spin" aria-hidden="true" />
+          ) : (
+            <FileText aria-hidden="true" />
+          )}
+          Exporter PDF
+        </Button>
+      ) : null}
     </div>
   );
 }
