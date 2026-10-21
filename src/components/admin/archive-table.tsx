@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowDown, ArrowUp, ArrowUpDown, Inbox } from "lucide-react";
 
-import { Badge, type BadgeProps } from "@/components/ui/badge";
+import { SenderCategoryBadge } from "@/components/admin/sender-category-badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
   Table,
@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { monthLabel, senderCategory, type SenderCategory } from "@/lib/archive";
+import { monthLabel, senderCategory } from "@/lib/archive";
 import { cn } from "@/lib/utils";
 import { buildArchiveSearchParams } from "@/lib/validation/archive-filters";
 import type {
@@ -19,12 +19,6 @@ import type {
   PaginatedArchive,
   ResolvedArchiveQuery,
 } from "@/types/archive";
-
-const CATEGORY_BADGES: Record<SenderCategory, BadgeProps["variant"]> = {
-  Particulier: "secondary",
-  "Organisme sénégalais": "default",
-  "Autre organisme": "outline",
-};
 
 /**
  * Tableau des archives (Server Component).
@@ -70,42 +64,33 @@ export function ArchiveTable({
         </TableHeader>
 
         <TableBody>
-          {result.items.map((entry) => {
-            const category = senderCategory(entry.email);
-
-            return (
-              <TableRow key={entry.id}>
-                <TableCell className="whitespace-nowrap">
-                  {monthLabel(entry.month)}
-                </TableCell>
-                <TableCell className="text-right tabular-nums text-muted-foreground">
-                  {entry.lineNumber}
-                </TableCell>
-                <TableCell className="font-medium">
-                  {entry.fullName ?? (
-                    <span className="font-normal text-muted-foreground">-</span>
-                  )}
-                </TableCell>
-                <TableCell className="max-w-[22rem] truncate">
-                  <a
-                    href={`mailto:${entry.email}`}
-                    title={`Écrire à ${entry.email}`}
-                    className="rounded hover:text-gold-ink hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
-                  >
-                    {entry.email}
-                  </a>
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant={CATEGORY_BADGES[category]}
-                    className="whitespace-nowrap"
-                  >
-                    {category}
-                  </Badge>
-                </TableCell>
-              </TableRow>
-            );
-          })}
+          {result.items.map((entry) => (
+            <TableRow key={entry.id}>
+              <TableCell className="whitespace-nowrap">
+                {monthLabel(entry.month)}
+              </TableCell>
+              <TableCell className="text-right tabular-nums text-muted-foreground">
+                {entry.lineNumber}
+              </TableCell>
+              <TableCell className="font-medium">
+                {entry.fullName ?? (
+                  <span className="font-normal text-muted-foreground">-</span>
+                )}
+              </TableCell>
+              <TableCell className="max-w-[22rem] truncate">
+                <a
+                  href={`mailto:${entry.email}`}
+                  title={`Écrire à ${entry.email}`}
+                  className="rounded hover:text-gold-ink hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+                >
+                  {entry.email}
+                </a>
+              </TableCell>
+              <TableCell>
+                <SenderCategoryBadge category={senderCategory(entry.email)} />
+              </TableCell>
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
     </div>

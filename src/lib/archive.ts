@@ -4,6 +4,7 @@ import type {
   ArchiveStats,
   MonthlyArchiveCount,
 } from "@/types/archive";
+import { formatFirstName, formatLastName } from "@/lib/utils";
 import type { CountBucket } from "@/types/visitor";
 
 /**
@@ -54,6 +55,24 @@ export function describeArchiveScope(year: number, month?: number) {
   return month ? `${monthLabel(month)} ${year}` : `Année ${year}, tous les mois`;
 }
 
+/**
+ * Nom complet d'une sollicitation ajoutée depuis l'application.
+ *
+ * Le registre ne connaît qu'un nom complet : il est composé à la convention
+ * des registres administratifs (« Awa DIALLO »). Sans prénom, c'est le plus
+ * souvent un organisme (« Service de la scolarité ») : sa graphie est
+ * conservée telle que saisie. `null` si rien n'est renseigné.
+ */
+export function composeArchiveName(firstName: string, lastName: string) {
+  const first = firstName.trim();
+  const last = lastName.trim();
+
+  if (!first) return last || null;
+  return last
+    ? `${formatFirstName(first)} ${formatLastName(last)}`
+    : formatFirstName(first);
+}
+
 /* -------------------------------------------------------------------------- */
 /* Catégorie d'expéditeur                                                      */
 /* -------------------------------------------------------------------------- */
@@ -91,6 +110,13 @@ export function senderCategory(email: string): SenderCategory {
   if (domain.endsWith(".sn")) return "Organisme sénégalais";
   return "Autre organisme";
 }
+
+/** Raison de la catégorie, affichée à côté de la détection. */
+export const SENDER_CATEGORY_REASONS: Record<SenderCategory, string> = {
+  Particulier: "messagerie grand public",
+  "Organisme sénégalais": "domaine sénégalais (.sn)",
+  "Autre organisme": "domaine professionnel",
+};
 
 /* -------------------------------------------------------------------------- */
 /* Statistiques                                                                */

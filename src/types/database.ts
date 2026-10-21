@@ -85,9 +85,10 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          year: number;
-          month: number;
-          line_number: number;
+          /** Omis : année, mois et numéro sont posés par le trigger (0006). */
+          year?: number;
+          month?: number;
+          line_number?: number;
           full_name?: string | null;
           email: string;
           created_at?: string;

@@ -19,6 +19,19 @@ export interface ArchiveEntry {
   email: string;
 }
 
+/** Ce que saisit l'agent ; la base attribue le reste. */
+export interface CreateArchiveEntryInput {
+  fullName: string | null;
+  email: string;
+}
+
+/** Place attribuée par la base à une sollicitation ajoutée. */
+export interface ArchiveEntryPosition {
+  year: number;
+  month: number;
+  lineNumber: number;
+}
+
 /** Colonnes sur lesquelles le tri est autorisé (liste blanche). */
 export type ArchiveSortField = "month" | "full_name" | "email";
 

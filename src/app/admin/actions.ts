@@ -4,9 +4,16 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { monthLabel } from "@/lib/archive";
 import { getAdminIdentity } from "@/lib/auth/guards";
+import { addArchiveEntry } from "@/lib/services/archives";
 import { deleteVisitor } from "@/lib/services/visitors";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import {
+  archiveEntryFieldErrors,
+  archiveEntrySchema,
+  type ArchiveEntryFieldErrors,
+} from "@/lib/validation/archive-entry";
 
 /**
  * Server Actions de l'espace administrateur.
@@ -128,4 +135,51 @@ export async function deleteVisitorAction(
   revalidatePath("/admin/dashboard");
 
   return { success: "La fiche du visiteur a été supprimée." };
+}
+
+export interface AddArchiveEntryState {
+  error?: string;
+  success?: string;
+  fieldErrors?: ArchiveEntryFieldErrors;
+}
+
+/** Ajout d'une sollicitation aux archives du service aux usagers. */
+export async function addArchiveEntryAction(
+  input: unknown,
+): Promise<AddArchiveEntryState> {
+  const identity = await getAdminIdentity();
+  if (!identity) {
+    return { error: "Accès refusé." };
+  }
+
+  const parsed = archiveEntrySchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      error: "Vérifiez les champs signalés.",
+      fieldErrors: archiveEntryFieldErrors(parsed.error),
+    };
+  }
+
+  try {
+    const position = await addArchiveEntry(parsed.data);
+
+    revalidatePath("/admin/archives");
+    revalidatePath("/admin/archives/statistiques");
+
+    return {
+      success: `${monthLabel(position.month)} ${position.year}, n° ${position.lineNumber}.`,
+    };
+  } catch (error) {
+    console.error("[admin] ajout aux archives impossible", error);
+
+    // 42501 : privilège manquant. Sans la migration 0006, la base refuse
+    // toute écriture sur la table : autant le dire clairement.
+    const code = (error as { cause?: { code?: string } }).cause?.code;
+    return {
+      error:
+        code === "42501"
+          ? "La base refuse l'ajout : exécutez la migration 0006 dans Supabase."
+          : "L'ajout de la sollicitation a échoué.",
+    };
+  }
 }

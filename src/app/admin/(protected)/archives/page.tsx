@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { AddArchiveEntryDialog } from "@/components/admin/add-archive-entry-dialog";
 import { ArchiveEmptyNotice } from "@/components/admin/archive-empty";
 import { ArchiveFilters } from "@/components/admin/archive-filters";
 import { ArchiveTable } from "@/components/admin/archive-table";
@@ -50,7 +51,10 @@ export default async function ArchivesPage({
           </p>
         </div>
 
-        {query ? <ExportButtons endpoints={ARCHIVE_EXPORTS} /> : null}
+        <div className="flex flex-wrap gap-2">
+          {query ? <ExportButtons endpoints={ARCHIVE_EXPORTS} /> : null}
+          <AddArchiveEntryDialog />
+        </div>
       </div>
 
       {query ? (
