@@ -4,13 +4,16 @@ import type {
   CreateArchiveEntryInput,
   PaginatedArchive,
   ResolvedArchiveQuery,
+  UpdateArchiveEntryInput,
 } from "@/types/archive";
 
 /**
  * Contrat d'accès aux archives du service aux usagers.
  *
  * Le registre Word est importé une fois pour toutes ; l'application y ajoute
- * ensuite les nouvelles sollicitations, sans jamais modifier les anciennes.
+ * ensuite les nouvelles sollicitations, en corrige le nom ou l'adresse et
+ * retire celles saisies par erreur. La place d'une ligne dans le registre
+ * (année, mois, numéro) ne change jamais.
  */
 export interface ArchiveRepository {
   /**
@@ -18,6 +21,15 @@ export interface ArchiveRepository {
    * numéro de ligne sont attribués par la base, puis retournés.
    */
   create(input: CreateArchiveEntryInput): Promise<ArchiveEntryPosition>;
+
+  /**
+   * Corrige le nom et l'adresse d'une ligne. `false` si elle n'existe pas
+   * (ou plus) : RLS masque une ligne interdite au lieu de lever une erreur.
+   */
+  update(id: string, input: UpdateArchiveEntryInput): Promise<boolean>;
+
+  /** Suppression définitive d'une ligne. `false` si elle n'existe pas. */
+  remove(id: string): Promise<boolean>;
 
   /** Liste paginée, filtrée et triée. */
   list(query: ResolvedArchiveQuery): Promise<PaginatedArchive>;

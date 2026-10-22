@@ -6,13 +6,20 @@ import { z } from "zod";
 
 import { monthLabel } from "@/lib/archive";
 import { getAdminIdentity } from "@/lib/auth/guards";
-import { addArchiveEntry } from "@/lib/services/archives";
+import {
+  addArchiveEntry,
+  deleteArchiveEntry,
+  updateArchiveEntry,
+} from "@/lib/services/archives";
 import { deleteVisitor } from "@/lib/services/visitors";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import {
-  archiveEntryFieldErrors,
   archiveEntrySchema,
-  type ArchiveEntryFieldErrors,
+  archiveEntryUpdateSchema,
+  fieldErrorsOf,
+  type ArchiveEntryFormValues,
+  type ArchiveEntryUpdateValues,
+  type FieldErrors,
 } from "@/lib/validation/archive-entry";
 
 /**
@@ -137,16 +144,16 @@ export async function deleteVisitorAction(
   return { success: "La fiche du visiteur a été supprimée." };
 }
 
-export interface AddArchiveEntryState {
+export interface ArchiveFormState<Values> {
   error?: string;
   success?: string;
-  fieldErrors?: ArchiveEntryFieldErrors;
+  fieldErrors?: FieldErrors<Values>;
 }
 
 /** Ajout d'une sollicitation aux archives du service aux usagers. */
 export async function addArchiveEntryAction(
   input: unknown,
-): Promise<AddArchiveEntryState> {
+): Promise<ArchiveFormState<ArchiveEntryFormValues>> {
   const identity = await getAdminIdentity();
   if (!identity) {
     return { error: "Accès refusé." };
@@ -156,7 +163,7 @@ export async function addArchiveEntryAction(
   if (!parsed.success) {
     return {
       error: "Vérifiez les champs signalés.",
-      fieldErrors: archiveEntryFieldErrors(parsed.error),
+      fieldErrors: fieldErrorsOf(parsed.error),
     };
   }
 
@@ -171,15 +178,116 @@ export async function addArchiveEntryAction(
     };
   } catch (error) {
     console.error("[admin] ajout aux archives impossible", error);
-
-    // 42501 : privilège manquant. Sans la migration 0006, la base refuse
-    // toute écriture sur la table : autant le dire clairement.
-    const code = (error as { cause?: { code?: string } }).cause?.code;
     return {
-      error:
-        code === "42501"
-          ? "La base refuse l'ajout : exécutez la migration 0006 dans Supabase."
-          : "L'ajout de la sollicitation a échoué.",
+      error: archiveWriteError(error, "0006", "L'ajout de la sollicitation a échoué."),
     };
   }
+}
+
+const archiveIdSchema = z.object({
+  id: z.string().uuid("Identifiant de sollicitation invalide."),
+});
+
+/** Correction du nom et de l'adresse d'une sollicitation archivée. */
+export async function updateArchiveEntryAction(
+  id: unknown,
+  input: unknown,
+): Promise<ArchiveFormState<ArchiveEntryUpdateValues>> {
+  const identity = await getAdminIdentity();
+  if (!identity) {
+    return { error: "Accès refusé." };
+  }
+
+  const target = archiveIdSchema.safeParse({ id });
+  if (!target.success) {
+    return { error: target.error.issues[0]?.message ?? "Requête invalide." };
+  }
+
+  const parsed = archiveEntryUpdateSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      error: "Vérifiez les champs signalés.",
+      fieldErrors: fieldErrorsOf(parsed.error),
+    };
+  }
+
+  try {
+    const updated = await updateArchiveEntry(target.data.id, parsed.data);
+    if (!updated) {
+      return { error: "Cette sollicitation n'existe plus." };
+    }
+  } catch (error) {
+    console.error("[admin] modification dans les archives impossible", error);
+    return {
+      error: archiveWriteError(
+        error,
+        "0007",
+        "La modification de la sollicitation a échoué.",
+      ),
+    };
+  }
+
+  revalidatePath("/admin/archives");
+  revalidatePath("/admin/archives/statistiques");
+
+  return { success: "La sollicitation a été modifiée." };
+}
+
+/** Suppression définitive d'une sollicitation archivée. */
+export async function deleteArchiveEntryAction(
+  _prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const identity = await getAdminIdentity();
+  if (!identity) {
+    return { error: "Accès refusé." };
+  }
+
+  const parsed = archiveIdSchema.safeParse({ id: formData.get("id") });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Requête invalide." };
+  }
+
+  try {
+    const removed = await deleteArchiveEntry(parsed.data.id);
+    if (!removed) {
+      return { error: "Cette sollicitation n'existe plus." };
+    }
+  } catch (error) {
+    console.error("[admin] suppression dans les archives impossible", error);
+    return {
+      error: archiveWriteError(
+        error,
+        "0007",
+        "La suppression de la sollicitation a échoué.",
+      ),
+    };
+  }
+
+  revalidatePath("/admin/archives");
+  revalidatePath("/admin/archives/statistiques");
+
+  return { success: "La sollicitation a été supprimée des archives." };
+}
+
+/**
+ * Message lisible pour un refus de la base sur `archive_entries`.
+ *
+ * Les deux refus partagent le code 42501 mais n'ont pas la même cause :
+ * « permission denied » signifie que la migration qui ouvre l'écriture n'a
+ * pas été exécutée, « row-level security » que le compte n'est pas
+ * administrateur actif.
+ */
+function archiveWriteError(
+  error: unknown,
+  migration: string,
+  fallback: string,
+) {
+  const cause = (error as { cause?: { code?: string; message?: string } })
+    .cause;
+  if (cause?.code !== "42501") return fallback;
+
+  return cause.message?.includes("row-level security")
+    ? "Votre compte n'est pas autorisé à modifier les archives."
+    : `La base refuse l'opération : exécutez la migration ${migration} dans Supabase.`;
 }

@@ -6,7 +6,7 @@ import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import { addArchiveEntryAction } from "@/app/admin/actions";
-import { SenderCategoryBadge } from "@/components/admin/sender-category-badge";
+import { SenderCategoryPreview } from "@/components/admin/sender-category-preview";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,39 +20,29 @@ import {
 } from "@/components/ui/dialog";
 import { describedBy, FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
+import { composeArchiveName } from "@/lib/archive";
 import {
-  composeArchiveName,
-  emailDomain,
-  SENDER_CATEGORY_REASONS,
-  senderCategory,
-} from "@/lib/archive";
-import {
-  archiveEntryFieldErrors,
   archiveEntrySchema,
-  type ArchiveEntryFieldErrors,
+  fieldErrorsOf,
   type ArchiveEntryFormValues,
+  type FieldErrors,
 } from "@/lib/validation/archive-entry";
 
 const EMPTY: ArchiveEntryFormValues = { firstName: "", lastName: "", email: "" };
 
 /**
- * Ajout d'une sollicitation reçue ce mois-ci.
- *
- * La catégorie d'expéditeur est détectée pendant la saisie, à partir du
- * domaine de l'adresse : l'agent voit tout de suite si l'usager écrit depuis
- * une messagerie personnelle ou depuis un organisme, avant d'enregistrer.
- * Elle n'est pas stockée : la liste, les exports et les statistiques la
- * recalculent de la même façon.
+ * Ajout d'une sollicitation reçue ce mois-ci, avec détection de la
+ * catégorie d'expéditeur pendant la saisie.
  */
 export function AddArchiveEntryDialog() {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [values, setValues] = React.useState<ArchiveEntryFormValues>(EMPTY);
-  const [errors, setErrors] = React.useState<ArchiveEntryFieldErrors>({});
+  const [errors, setErrors] = React.useState<
+    FieldErrors<ArchiveEntryFormValues>
+  >({});
   const [isPending, startTransition] = React.useTransition();
 
-  const email = archiveEntrySchema.shape.email.safeParse(values.email);
-  const category = email.success ? senderCategory(email.data) : null;
   const storedName = composeArchiveName(values.firstName, values.lastName);
 
   const update =
@@ -76,7 +66,7 @@ export function AddArchiveEntryDialog() {
 
     const parsed = archiveEntrySchema.safeParse(values);
     if (!parsed.success) {
-      setErrors(archiveEntryFieldErrors(parsed.error));
+      setErrors(fieldErrorsOf(parsed.error));
       return;
     }
 
@@ -188,37 +178,10 @@ export function AddArchiveEntryDialog() {
             />
           </FormField>
 
-          <div
-            aria-live="polite"
-            className="space-y-2 rounded-2xl border border-border bg-muted/40 px-4 py-3"
-          >
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Catégorie détectée
-            </p>
-
-            {category && email.success ? (
-              <div className="flex flex-wrap items-center gap-2">
-                <SenderCategoryBadge category={category} />
-                <span className="text-sm text-muted-foreground">
-                  {SENDER_CATEGORY_REASONS[category]} ·{" "}
-                  <span className="font-medium text-foreground">
-                    {emailDomain(email.data)}
-                  </span>
-                </span>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Déduite du domaine dès que l’adresse est complète.
-              </p>
-            )}
-
-            {storedName ? (
-              <p className="text-sm text-muted-foreground">
-                Nom enregistré :{" "}
-                <span className="font-medium text-foreground">{storedName}</span>
-              </p>
-            ) : null}
-          </div>
+          <SenderCategoryPreview
+            email={values.email}
+            storedName={storedName}
+          />
 
           <DialogFooter>
             <DialogClose asChild>

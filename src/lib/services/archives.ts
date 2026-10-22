@@ -14,7 +14,7 @@ import type {
 
 /**
  * Logique métier « archives du service aux usagers ».
- * Lectures et ajouts réservés aux administrateurs (protégés par RLS).
+ * Lectures et écritures réservées aux administrateurs (protégées par RLS).
  */
 
 /**
@@ -33,6 +33,27 @@ export async function addArchiveEntry(input: {
     fullName: composeArchiveName(input.firstName, input.lastName),
     email: input.email,
   });
+}
+
+/**
+ * Corrige le nom et l'adresse d'une ligne ; `false` si elle n'existe plus.
+ * Le nom est enregistré tel que saisi : c'est une correction, pas une saisie.
+ */
+export async function updateArchiveEntry(
+  id: string,
+  input: { fullName: string; email: string },
+): Promise<boolean> {
+  const repository = await getArchiveRepository();
+  return repository.update(id, {
+    fullName: input.fullName || null,
+    email: input.email,
+  });
+}
+
+/** Suppression définitive ; `false` si la ligne n'existe plus. */
+export async function deleteArchiveEntry(id: string): Promise<boolean> {
+  const repository = await getArchiveRepository();
+  return repository.remove(id);
 }
 
 /**

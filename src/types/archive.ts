@@ -25,6 +25,9 @@ export interface CreateArchiveEntryInput {
   email: string;
 }
 
+/** Seuls le nom et l'adresse se corrigent ; la place dans le registre est fixe. */
+export type UpdateArchiveEntryInput = CreateArchiveEntryInput;
+
 /** Place attribuée par la base à une sollicitation ajoutée. */
 export interface ArchiveEntryPosition {
   year: number;

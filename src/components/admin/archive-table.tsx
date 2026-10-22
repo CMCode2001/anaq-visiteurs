@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowDown, ArrowUp, ArrowUpDown, Inbox } from "lucide-react";
 
+import { ArchiveRowActions } from "@/components/admin/archive-row-actions";
 import { SenderCategoryBadge } from "@/components/admin/sender-category-badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
@@ -24,8 +25,8 @@ import type {
  * Tableau des archives (Server Component).
  *
  * Pas de fiche détaillée ici : le registre ne contient que le nom et
- * l'adresse. L'adresse est un lien `mailto:`, seule action utile sur une
- * ligne — répondre à l'usager.
+ * l'adresse. L'adresse est un lien `mailto:` pour répondre à l'usager ;
+ * en bout de ligne, corriger ou retirer la sollicitation.
  */
 export function ArchiveTable({
   result,
@@ -60,6 +61,9 @@ export function ArchiveTable({
               <SortLink column="email" label="Email" query={query} />
             </TableHead>
             <TableHead>Catégorie</TableHead>
+            <TableHead className="text-right">
+              <span className="sr-only">Actions</span>
+            </TableHead>
           </TableRow>
         </TableHeader>
 
@@ -88,6 +92,9 @@ export function ArchiveTable({
               </TableCell>
               <TableCell>
                 <SenderCategoryBadge category={senderCategory(entry.email)} />
+              </TableCell>
+              <TableCell className="py-1.5 text-right">
+                <ArchiveRowActions entry={entry} />
               </TableCell>
             </TableRow>
           ))}
