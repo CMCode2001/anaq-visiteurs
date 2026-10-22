@@ -13,6 +13,7 @@ import {
   type CreateArchiveEntryInput,
   type PaginatedArchive,
   type ResolvedArchiveQuery,
+  type UpdateArchiveEntryInput,
 } from "@/types/archive";
 
 type Client = SupabaseClient<Database>;
@@ -27,7 +28,7 @@ const BATCH_SIZE = 1_000;
 
 /**
  * Implémentation Supabase du contrat `ArchiveRepository`.
- * Lecture et ajout sont réservés aux administrateurs par RLS.
+ * Lecture et écritures sont réservées aux administrateurs par RLS.
  */
 export class SupabaseArchiveRepository implements ArchiveRepository {
   constructor(private readonly client: Client) {}
@@ -48,6 +49,42 @@ export class SupabaseArchiveRepository implements ArchiveRepository {
     }
 
     return { year: data.year, month: data.month, lineNumber: data.line_number };
+  }
+
+  async update(id: string, input: UpdateArchiveEntryInput): Promise<boolean> {
+    // `select` après l'écriture : seul moyen de savoir si une ligne a
+    // réellement changé, RLS ne signalant pas une ligne qu'il a masquée.
+    const { data, error } = await this.client
+      .from("archive_entries")
+      .update({ full_name: input.fullName, email: input.email })
+      .eq("id", id)
+      .select("id");
+
+    if (error) {
+      throw new ArchiveRepositoryError(
+        "Impossible de modifier la sollicitation.",
+        error,
+      );
+    }
+
+    return (data?.length ?? 0) > 0;
+  }
+
+  async remove(id: string): Promise<boolean> {
+    const { data, error } = await this.client
+      .from("archive_entries")
+      .delete()
+      .eq("id", id)
+      .select("id");
+
+    if (error) {
+      throw new ArchiveRepositoryError(
+        "Impossible de supprimer la sollicitation.",
+        error,
+      );
+    }
+
+    return (data?.length ?? 0) > 0;
   }
 
   async list(query: ResolvedArchiveQuery): Promise<PaginatedArchive> {

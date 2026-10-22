@@ -45,7 +45,8 @@ habilités y accèdent par l'URL directe)
   mensuel, usagers distincts et récurrents, catégories d'expéditeurs,
   messageries). Bouton **Ajouter** pour enregistrer une nouvelle
   sollicitation (prénom, nom, email), avec détection immédiate de la
-  catégorie d'expéditeur
+  catégorie d'expéditeur ; modification (nom, email) et suppression de
+  chaque ligne, avec confirmation
 
 ---
 
@@ -417,6 +418,10 @@ mois, chaque ligne au format `Nom <adresse@email>`.
    pour activer le bouton **Ajouter** (écriture réservée aux administrateurs).
    Une sollicitation ajoutée rejoint le mois en cours : l'année, le mois et
    le numéro de ligne sont attribués par la base, jamais par le navigateur.
+5. **SQL Editor** → exécuter `supabase/migrations/0007_archive_entries_edit_delete.sql`
+   pour activer la modification et la suppression. Seuls le nom et l'adresse
+   sont modifiables ; une ligne supprimée laisse un trou dans la
+   numérotation, les autres numéros ne bougent pas.
 
 La rubrique **Archives** de l'espace administrateur affiche l'année la plus
 récente ; un sélecteur apparaît dès que plusieurs années sont importées.
