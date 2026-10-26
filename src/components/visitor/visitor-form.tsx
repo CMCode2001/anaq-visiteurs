@@ -5,13 +5,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import { Loader2, Send, ShieldCheck } from "lucide-react";
+import { GraduationCap, Loader2, Send, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { describedBy, FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
+import { SuggestionCombobox } from "@/components/ui/suggestion-combobox";
 import { CountryCombobox } from "@/components/visitor/country-combobox";
 import { PhoneField } from "@/components/visitor/phone-field";
 import { CONSENT_TEXT, FORMATION_SUGGESTIONS, ORG } from "@/lib/constants";
@@ -207,26 +208,31 @@ export function VisitorForm() {
           label="Formation recherchée"
           required
           className="sm:col-span-2"
-          hint="Précisez la filière ou le programme qui vous intéresse."
+          hint="Choisissez dans la liste, ou saisissez votre filière si elle n'y figure pas."
           error={errors.formationRequested?.message}
         >
-          <Input
-            id="formationRequested"
-            list="formation-suggestions"
-            placeholder="Informatique / Génie logiciel"
-            aria-invalid={Boolean(errors.formationRequested)}
-            aria-describedby={describedBy(
-              "formationRequested",
-              true,
-              Boolean(errors.formationRequested),
+          <Controller
+            control={control}
+            name="formationRequested"
+            render={({ field }) => (
+              <SuggestionCombobox
+                id="formationRequested"
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                suggestions={FORMATION_SUGGESTIONS}
+                placeholder="Choisir ou saisir une formation"
+                heading="Formations"
+                icon={<GraduationCap aria-hidden="true" />}
+                invalid={Boolean(errors.formationRequested)}
+                describedBy={describedBy(
+                  "formationRequested",
+                  true,
+                  Boolean(errors.formationRequested),
+                )}
+              />
             )}
-            {...register("formationRequested")}
           />
-          <datalist id="formation-suggestions">
-            {FORMATION_SUGGESTIONS.map((formation) => (
-              <option key={formation} value={formation} />
-            ))}
-          </datalist>
         </FormField>
       </div>
 

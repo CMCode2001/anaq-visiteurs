@@ -1,5 +1,8 @@
-import { SpecialtyCombobox } from "@/components/admin/specialty-combobox";
+import { GraduationCap } from "lucide-react";
+
 import { describedBy, FormField } from "@/components/ui/form-field";
+import { SuggestionCombobox } from "@/components/ui/suggestion-combobox";
+import { SPECIALTY_SUGGESTIONS } from "@/lib/archive";
 
 /**
  * Spécialité de formation demandée : liste déroulante des formations du
@@ -26,10 +29,15 @@ export function SpecialtyField({
       hint="Formation sur laquelle porte la demande."
       error={error}
     >
-      <SpecialtyCombobox
+      <SuggestionCombobox
         id={id}
         value={value}
         onChange={onChange}
+        suggestions={SPECIALTY_SUGGESTIONS}
+        placeholder="Choisir ou saisir une spécialité"
+        heading="Spécialités"
+        icon={<GraduationCap aria-hidden="true" />}
+        clearLabel="Retirer la spécialité"
         invalid={Boolean(error)}
         describedBy={describedBy(id, true, Boolean(error))}
       />

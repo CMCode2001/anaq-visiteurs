@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, ChevronsUpDown, GraduationCap, PenLine, X } from "lucide-react";
+import { Check, ChevronsUpDown, PenLine, X } from "lucide-react";
 
 import {
   Command,
@@ -16,55 +16,77 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { SPECIALTY_SUGGESTIONS } from "@/lib/archive";
 import { normalize } from "@/lib/countries";
 import { cn } from "@/lib/utils";
 
-/** Valeur cmdk réservée à l'option de saisie libre. */
+/** Valeurs cmdk réservées aux options hors liste. */
 const FREE_TEXT = "__saisie-libre__";
 const CLEAR = "__aucune__";
 
-/**
- * Spécialité : liste déroulante des formations, avec saisie libre.
- *
- * Même gabarit que le sélecteur de pays du formulaire visiteur : un clic
- * déplie toute la liste, la frappe la filtre sans tenir compte des accents
- * ni des majuscules. Si la spécialité n'y figure pas, l'option « Utiliser
- * « … » » enregistre le texte tel que tapé.
- *
- * `modal` : la boîte de dialogue qui contient ce champ bloque le défilement
- * hors d'elle ; sans cette option, la liste, rendue dans un portail, ne
- * défilerait pas à la molette.
- */
-export function SpecialtyCombobox({
-  id,
-  value,
-  onChange,
-  invalid = false,
-  describedBy,
-}: {
+interface SuggestionComboboxProps {
   id: string;
   value: string;
   onChange: (value: string) => void;
+  onBlur?: () => void;
+  /** Propositions de la liste ; la saisie libre reste toujours possible. */
+  suggestions: readonly string[];
+  /** Texte du champ tant que rien n'est choisi. */
+  placeholder: string;
+  /** Intitulé du groupe de propositions. */
+  heading: string;
+  icon: React.ReactNode;
+  /** Libellé de l'option qui vide le champ ; absente si non fournie. */
+  clearLabel?: string;
   invalid?: boolean;
   describedBy?: string;
-}) {
+}
+
+/**
+ * Liste déroulante de propositions, avec saisie libre.
+ *
+ * Même gabarit que le sélecteur de pays du formulaire visiteur : un clic
+ * déplie toute la liste, la frappe la filtre sans tenir compte des accents,
+ * des majuscules ni de l'ordre des mots. Si la valeur cherchée n'y figure
+ * pas, l'option « Utiliser « … » » enregistre le texte tel que tapé.
+ *
+ * `modal` : dans une boîte de dialogue, le défilement hors d'elle est
+ * bloqué ; sans cette option, la liste, rendue dans un portail, ne
+ * défilerait pas à la molette.
+ */
+export function SuggestionCombobox({
+  id,
+  value,
+  onChange,
+  onBlur,
+  suggestions,
+  placeholder,
+  heading,
+  icon,
+  clearLabel,
+  invalid = false,
+  describedBy,
+}: SuggestionComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
 
   const typed = search.trim();
-  const typedIsListed = SPECIALTY_SUGGESTIONS.some(
+  const typedIsListed = suggestions.some(
     (label) => normalize(label) === normalize(typed),
   );
 
   const choose = (next: string) => {
     onChange(next);
     setOpen(false);
+    onBlur?.();
   };
 
+  // Le champ n'est « quitté » qu'à la fermeture de la liste : ouvrir la
+  // liste déplace le focus vers la recherche, et valider à ce moment
+  // afficherait l'erreur d'un champ vide avant même le choix.
   const onOpenChange = (next: boolean) => {
     setOpen(next);
     if (next) setSearch("");
+    else onBlur?.();
   };
 
   return (
@@ -81,19 +103,17 @@ export function SpecialtyCombobox({
             "focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--background)]",
             "data-[invalid]:border-destructive",
             "md:text-sm",
+            "[&>svg:first-child]:size-4 [&>svg:first-child]:shrink-0 [&>svg:first-child]:text-muted-foreground",
           )}
         >
-          <GraduationCap
-            className="size-4 shrink-0 text-muted-foreground"
-            aria-hidden="true"
-          />
+          {icon}
           <span
             className={cn(
               "min-w-0 flex-1 truncate",
               !value && "text-muted-foreground",
             )}
           >
-            {value || "Choisir ou saisir une spécialité"}
+            {value || placeholder}
           </span>
           <ChevronsUpDown
             className="size-4 shrink-0 text-muted-foreground"
@@ -106,7 +126,7 @@ export function SpecialtyCombobox({
         className="w-[var(--radix-popover-trigger-width)] min-w-[16rem]"
         align="start"
       >
-        <Command filter={filterSpecialty}>
+        <Command filter={filterSuggestion}>
           <CommandInput
             value={search}
             onValueChange={setSearch}
@@ -114,8 +134,8 @@ export function SpecialtyCombobox({
           />
 
           <CommandList>
-            <CommandGroup heading="Spécialités">
-              {SPECIALTY_SUGGESTIONS.map((label) => (
+            <CommandGroup heading={heading}>
+              {suggestions.map((label) => (
                 <CommandItem
                   key={label}
                   value={label}
@@ -133,9 +153,9 @@ export function SpecialtyCombobox({
             </CommandGroup>
 
             {/*
-              Saisie libre en dernier : une spécialité de la liste qui
-              correspond reste présélectionnée, Entrée la choisit. Sans
-              correspondance, cette option est la seule, donc présélectionnée.
+              Saisie libre en dernier : une proposition qui correspond reste
+              présélectionnée, Entrée la choisit. Sans correspondance, cette
+              option est la seule, donc présélectionnée.
             */}
             {typed && !typedIsListed ? (
               <>
@@ -154,7 +174,7 @@ export function SpecialtyCombobox({
               </>
             ) : null}
 
-            {value && !typed ? (
+            {clearLabel && value && !typed ? (
               <>
                 <CommandSeparator />
                 <CommandGroup>
@@ -163,9 +183,7 @@ export function SpecialtyCombobox({
                       className="size-4 shrink-0 text-muted-foreground"
                       aria-hidden="true"
                     />
-                    <span className="text-muted-foreground">
-                      Retirer la spécialité
-                    </span>
+                    <span className="text-muted-foreground">{clearLabel}</span>
                   </CommandItem>
                 </CommandGroup>
               </>
@@ -182,8 +200,8 @@ export function SpecialtyCombobox({
  * mots dans le désordre acceptés (« gaz petrole » trouve « Pétrole et Gaz »).
  * Les libellés qui commencent par la recherche remontent en tête.
  */
-function filterSpecialty(itemValue: string, search: string) {
-  // Toujours affichées, mais classées après toute spécialité qui correspond.
+function filterSuggestion(itemValue: string, search: string) {
+  // Toujours affichées, mais classées après toute proposition qui correspond.
   if (itemValue === FREE_TEXT || itemValue === CLEAR) return 0.01;
 
   const needle = normalize(search);
