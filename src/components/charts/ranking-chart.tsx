@@ -14,12 +14,19 @@ import type { CountBucket } from "@/types/visitor";
 export function RankingChart({
   data,
   ariaLabel,
+  total: overallTotal,
 }: {
   data: CountBucket[];
   ariaLabel: string;
+  /**
+   * Base des pourcentages quand `data` n'est qu'un extrait (les dix
+   * premiers) : sans elle, les parts seraient calculées sur l'extrait.
+   */
+  total?: number;
 }) {
   const max = Math.max(...data.map((bucket) => bucket.count), 1);
-  const total = data.reduce((sum, bucket) => sum + bucket.count, 0);
+  const total =
+    overallTotal ?? data.reduce((sum, bucket) => sum + bucket.count, 0);
 
   return (
     <ol aria-label={ariaLabel} className="space-y-3.5">

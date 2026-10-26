@@ -4,6 +4,7 @@ import type {
   ArchiveStats,
   MonthlyArchiveCount,
 } from "@/types/archive";
+import { FORMATION_SUGGESTIONS } from "@/lib/constants";
 import { formatFirstName, formatLastName } from "@/lib/utils";
 import type { CountBucket } from "@/types/visitor";
 
@@ -74,6 +75,46 @@ export function composeArchiveName(firstName: string, lastName: string) {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Spécialité demandée                                                         */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Suggestions du champ « Spécialité » : la liste des formations du
+ * formulaire visiteur, pour que les deux espaces parlent le même langage.
+ */
+export const SPECIALTY_SUGGESTIONS = FORMATION_SUGGESTIONS;
+
+function foldText(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+const SUGGESTION_BY_FOLD = new Map<string, string>(
+  SPECIALTY_SUGGESTIONS.map((label) => [foldText(label), label]),
+);
+
+/**
+ * Forme enregistrée d'une spécialité, pour des statistiques qui ne se
+ * fragmentent pas : « informatique / genie logiciel » saisi à la main
+ * devient le libellé de la liste, « Informatique / Génie logiciel ».
+ * Hors liste, la saisie est gardée, première lettre en capitale.
+ * `null` si rien n'est renseigné.
+ */
+export function canonicalSpecialty(value: string) {
+  const text = value.trim().replace(/\s+/g, " ");
+  if (!text) return null;
+
+  return (
+    SUGGESTION_BY_FOLD.get(foldText(text)) ??
+    text.charAt(0).toLocaleUpperCase("fr-FR") + text.slice(1)
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /* Catégorie d'expéditeur                                                      */
 /* -------------------------------------------------------------------------- */
 
@@ -110,13 +151,6 @@ export function senderCategory(email: string): SenderCategory {
   if (domain.endsWith(".sn")) return "Organisme sénégalais";
   return "Autre organisme";
 }
-
-/** Raison de la catégorie, affichée à côté de la détection. */
-export const SENDER_CATEGORY_REASONS: Record<SenderCategory, string> = {
-  Particulier: "messagerie grand public",
-  "Organisme sénégalais": "domaine sénégalais (.sn)",
-  "Autre organisme": "domaine professionnel",
-};
 
 /* -------------------------------------------------------------------------- */
 /* Statistiques                                                                */
@@ -158,6 +192,10 @@ export function computeArchiveStats(
     };
   });
 
+  const specialties = entries
+    .map((entry) => entry.specialty)
+    .filter((specialty): specialty is string => Boolean(specialty));
+
   const busiestMonth = monthly.reduce<MonthlyArchiveCount | null>(
     (best, current) => (!best || current.count > best.count ? current : best),
     null,
@@ -173,6 +211,8 @@ export function computeArchiveStats(
     monthly,
     categories: countBy(entries.map((entry) => senderCategory(entry.email))),
     domains: countBy(entries.map((entry) => emailDomain(entry.email))),
+    specialties: countBy(specialties),
+    specialtyCount: specialties.length,
     topRequesters: requesters
       .filter((requester) => requester.count > 1)
       .sort(

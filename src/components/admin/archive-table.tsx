@@ -60,6 +60,9 @@ export function ArchiveTable({
             <TableHead aria-sort={ariaSort(query, "email")}>
               <SortLink column="email" label="Email" query={query} />
             </TableHead>
+            <TableHead aria-sort={ariaSort(query, "specialty")}>
+              <SortLink column="specialty" label="Spécialité" query={query} />
+            </TableHead>
             <TableHead>Catégorie</TableHead>
             <TableHead className="text-right">
               <span className="sr-only">Actions</span>
@@ -81,7 +84,7 @@ export function ArchiveTable({
                   <span className="font-normal text-muted-foreground">-</span>
                 )}
               </TableCell>
-              <TableCell className="max-w-[22rem] truncate">
+              <TableCell className="max-w-[18rem] truncate">
                 <a
                   href={`mailto:${entry.email}`}
                   title={`Écrire à ${entry.email}`}
@@ -89,6 +92,14 @@ export function ArchiveTable({
                 >
                   {entry.email}
                 </a>
+              </TableCell>
+              <TableCell
+                className="max-w-[14rem] truncate"
+                title={entry.specialty ?? undefined}
+              >
+                {entry.specialty ?? (
+                  <span className="text-muted-foreground">-</span>
+                )}
               </TableCell>
               <TableCell>
                 <SenderCategoryBadge category={senderCategory(entry.email)} />

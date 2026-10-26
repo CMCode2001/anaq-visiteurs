@@ -385,7 +385,8 @@ export async function buildArchivePdf(
   entries: ArchiveEntry[],
   query: Pick<ResolvedArchiveQuery, "year" | "month" | "search">,
 ): Promise<Buffer> {
-  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  // Paysage : six colonnes, dont deux textes longs (adresse, spécialité).
+  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const logo = await loadLogo();
   const title = `Archives - Service aux usagers ${query.year}`;
 
@@ -413,13 +414,18 @@ export async function buildArchivePdf(
       if (data.pageNumber > 1) drawHeader(doc, title, logo);
     },
     // « N° » perdrait son signe en ASCII : « No » reste lisible.
-    head: [["Mois", "No", "Nom de l'usager", "Email", "Catégorie"].map(ascii)],
+    head: [
+      ["Mois", "No", "Nom de l'usager", "Email", "Spécialité", "Catégorie"].map(
+        ascii,
+      ),
+    ],
     body: entries.map((entry) =>
       [
         monthLabel(entry.month),
         entry.lineNumber,
         entry.fullName ?? "-",
         entry.email,
+        entry.specialty ?? "-",
         senderCategory(entry.email),
       ].map(ascii),
     ),
@@ -431,15 +437,16 @@ export async function buildArchivePdf(
     },
     headStyles: { fillColor: BRAND, textColor: 255, fontStyle: "bold" },
     alternateRowStyles: { fillColor: [246, 247, 249] },
-    // A4 portrait : 210 mm moins 28 mm de marges = 182 mm.
+    // A4 paysage : 297 mm moins 28 mm de marges = 269 mm.
     // Une adresse de 45 caracteres tient sur une ligne en 70 mm,
     // « Organisme senegalais » en 34 mm.
     columnStyles: {
-      0: { cellWidth: 20 }, // Mois
-      1: { cellWidth: 10 }, // No
-      2: { cellWidth: 48 }, // Nom
-      3: { cellWidth: 70 }, // Email
-      4: { cellWidth: 34 }, // Categorie
+      0: { cellWidth: 22 }, // Mois
+      1: { cellWidth: 11 }, // No
+      2: { cellWidth: 56 }, // Nom
+      3: { cellWidth: 72 }, // Email
+      4: { cellWidth: "auto" }, // Specialite
+      5: { cellWidth: 34 }, // Categorie
     },
     didParseCell: alignRight([1]),
   });
@@ -660,16 +667,73 @@ export async function buildArchiveStatsPdf(
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(...MUTED);
+  const categoriesNoteY = lastTableBottom(doc) + 5;
   doc.text(
     ascii(
       "Catégorie déduite du domaine de l'adresse : messagerie grand public (particulier), domaine .sn (organisme sénégalais), autre domaine.",
     ),
     MARGIN,
-    lastTableBottom(doc) + 5,
+    categoriesNoteY,
     { maxWidth: doc.internal.pageSize.getWidth() - MARGIN * 2 },
   );
 
-  // 4. Messageries et domaines : les huit premiers, le reste regroupé
+  // 4. Spécialités demandées : les dix premières, sur les lignes renseignées
+  const specialtyTop = stats.specialties.slice(0, 10);
+  const specialtyOthers = stats.specialties
+    .slice(10)
+    .reduce((sum, bucket) => sum + bucket.count, 0);
+
+  if (stats.specialtyCount > 0) {
+    autoTable(doc, {
+      ...tableDefaults,
+      startY: section("Spécialités demandées", categoriesNoteY + 1),
+      head: [["Spécialité", "Sollicitations", "Part"].map(ascii)],
+      body: [
+        ...specialtyTop,
+        ...(specialtyOthers > 0
+          ? [
+              {
+                label: `Autres spécialités (${stats.specialties.length - specialtyTop.length})`,
+                count: specialtyOthers,
+              },
+            ]
+          : []),
+      ].map((bucket) =>
+        [
+          bucket.label,
+          String(bucket.count),
+          share(bucket.count, stats.specialtyCount),
+        ].map(ascii),
+      ),
+      columnStyles: {
+        0: { cellWidth: "auto" },
+        1: { cellWidth: 32 },
+        2: { cellWidth: 22 },
+      },
+      didParseCell: alignRight([1, 2]),
+    });
+  }
+
+  // Sans tableau de spécialités, la note prend la ligne sous celle des
+  // catégories au lieu de s'y superposer.
+  const specialtyNoteY =
+    stats.specialtyCount > 0 ? lastTableBottom(doc) + 5 : categoriesNoteY + 5;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(...MUTED);
+  doc.text(
+    ascii(
+      stats.specialtyCount > 0
+        ? `${stats.specialtyCount} sollicitation(s) sur ${stats.total} précisent une spécialité ; les parts sont calculées sur celles-ci.`
+        : "Spécialités demandées : aucune n'est encore renseignée.",
+    ),
+    MARGIN,
+    specialtyNoteY,
+    { maxWidth: doc.internal.pageSize.getWidth() - MARGIN * 2 },
+  );
+
+  // 5. Messageries et domaines : les huit premiers, le reste regroupé
   const topDomains = stats.domains.slice(0, 8);
   const otherDomains = stats.domains
     .slice(8)
@@ -677,7 +741,7 @@ export async function buildArchiveStatsPdf(
 
   autoTable(doc, {
     ...tableDefaults,
-    startY: section("Messageries et domaines", lastTableBottom(doc) + 6),
+    startY: section("Messageries et domaines", specialtyNoteY + 1),
     head: [["Domaine", "Sollicitations", "Part"].map(ascii)],
     body: [
       ...topDomains,
@@ -702,7 +766,7 @@ export async function buildArchiveStatsPdf(
     didParseCell: alignRight([1, 2]),
   });
 
-  // 5. Usagers récurrents
+  // 6. Usagers récurrents
   if (stats.topRequesters.length > 0) {
     autoTable(doc, {
       ...tableDefaults,

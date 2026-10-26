@@ -6,7 +6,7 @@ import { Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 
 import { updateArchiveEntryAction } from "@/app/admin/actions";
-import { SenderCategoryPreview } from "@/components/admin/sender-category-preview";
+import { SpecialtyField } from "@/components/admin/specialty-field";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -30,7 +30,7 @@ import {
 import type { ArchiveEntry } from "@/types/archive";
 
 /**
- * Correction du nom et de l'adresse d'une sollicitation.
+ * Correction du nom, de l'adresse et de la spécialité d'une sollicitation.
  *
  * Un seul champ pour le nom : dans les lignes importées du registre,
  * prénom et nom ne sont pas séparables. La place de la ligne (mois,
@@ -45,8 +45,12 @@ export function EditArchiveEntryDialog({
 }) {
   const router = useRouter();
   const initial = React.useMemo<ArchiveEntryUpdateValues>(
-    () => ({ fullName: entry.fullName ?? "", email: entry.email }),
-    [entry.fullName, entry.email],
+    () => ({
+      fullName: entry.fullName ?? "",
+      email: entry.email,
+      specialty: entry.specialty ?? "",
+    }),
+    [entry.fullName, entry.email, entry.specialty],
   );
 
   const [open, setOpen] = React.useState(false);
@@ -58,7 +62,8 @@ export function EditArchiveEntryDialog({
 
   const unchanged =
     values.fullName.trim() === initial.fullName &&
-    values.email.trim().toLowerCase() === initial.email;
+    values.email.trim().toLowerCase() === initial.email &&
+    values.specialty.trim() === initial.specialty;
 
   const onOpenChange = (next: boolean) => {
     setOpen(next);
@@ -165,7 +170,12 @@ export function EditArchiveEntryDialog({
             />
           </FormField>
 
-          <SenderCategoryPreview email={values.email} />
+          <SpecialtyField
+            id={`archive-edit-specialty-${entry.id}`}
+            value={values.specialty}
+            onChange={update("specialty")}
+            error={errors.specialty}
+          />
 
           <DialogFooter>
             <DialogClose asChild>

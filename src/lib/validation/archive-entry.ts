@@ -10,15 +10,23 @@ import { z } from "zod";
  * historique compte déjà des lignes réduites à une adresse.
  */
 
-const optionalName = (label: string, max: number) =>
+/** Texte facultatif : vide, ou au moins deux caractères. */
+const optionalText = (subject: string, max: number) =>
   z
     .string()
     .trim()
-    .max(max, `Le ${label} ne doit pas dépasser ${max} caractères.`)
+    .max(max, `${subject} ne doit pas dépasser ${max} caractères.`)
     .refine(
       (value) => value === "" || value.length >= 2,
-      `Le ${label} doit contenir au moins 2 caractères.`,
+      `${subject} doit contenir au moins 2 caractères.`,
     );
+
+/**
+ * Spécialité de formation demandée. Facultative : un organisme qui écrit
+ * pour vérifier un diplôme n'en demande pas, et les lignes importées n'en
+ * portent pas encore.
+ */
+const specialty = optionalText("La spécialité", 200);
 
 const email = z
   .string()
@@ -30,9 +38,10 @@ const email = z
 
 /** Ajout : prénom et nom séparés, composés ensuite à la convention. */
 export const archiveEntrySchema = z.object({
-  firstName: optionalName("prénom", 100),
-  lastName: optionalName("nom", 100),
+  firstName: optionalText("Le prénom", 100),
+  lastName: optionalText("Le nom", 100),
   email,
+  specialty,
 });
 
 /**
@@ -40,12 +49,10 @@ export const archiveEntrySchema = z.object({
  * pas séparables dans les lignes importées du registre.
  */
 export const archiveEntryUpdateSchema = z.object({
-  fullName: optionalName("nom", 200),
+  fullName: optionalText("Le nom", 200),
   email,
+  specialty,
 });
-
-/** L'adresse seule, pour détecter la catégorie pendant la saisie. */
-export const archiveEmailSchema = email;
 
 export type ArchiveEntryFormValues = z.input<typeof archiveEntrySchema>;
 export type ArchiveEntryUpdateValues = z.input<typeof archiveEntryUpdateSchema>;

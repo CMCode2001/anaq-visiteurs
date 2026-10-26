@@ -10,7 +10,12 @@ import type { ArchiveQuery } from "@/types/archive";
  * ramenée à un défaut sûr (liste blanche), y compris dans les exports.
  */
 
-export const archiveSortFields = ["month", "full_name", "email"] as const;
+export const archiveSortFields = [
+  "month",
+  "full_name",
+  "email",
+  "specialty",
+] as const;
 
 const archiveQuerySchema = z.object({
   year: z.coerce.number().int().min(2000).max(2100).optional().catch(undefined),

@@ -81,6 +81,7 @@ export interface Database {
           line_number: number;
           full_name: string | null;
           email: string;
+          specialty: string | null;
           created_at: string;
         };
         Insert: {
@@ -91,6 +92,7 @@ export interface Database {
           line_number?: number;
           full_name?: string | null;
           email: string;
+          specialty?: string | null;
           created_at?: string;
         };
         Update: Partial<
