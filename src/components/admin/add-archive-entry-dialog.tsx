@@ -6,7 +6,7 @@ import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import { addArchiveEntryAction } from "@/app/admin/actions";
-import { SenderCategoryPreview } from "@/components/admin/sender-category-preview";
+import { SpecialtyField } from "@/components/admin/specialty-field";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/dialog";
 import { describedBy, FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
-import { composeArchiveName } from "@/lib/archive";
 import {
   archiveEntrySchema,
   fieldErrorsOf,
@@ -28,11 +27,17 @@ import {
   type FieldErrors,
 } from "@/lib/validation/archive-entry";
 
-const EMPTY: ArchiveEntryFormValues = { firstName: "", lastName: "", email: "" };
+const EMPTY: ArchiveEntryFormValues = {
+  firstName: "",
+  lastName: "",
+  email: "",
+  specialty: "",
+};
 
 /**
- * Ajout d'une sollicitation reçue ce mois-ci, avec détection de la
- * catégorie d'expéditeur pendant la saisie.
+ * Ajout d'une sollicitation reçue ce mois-ci. La catégorie d'expéditeur
+ * n'est pas saisie : la liste, les exports et les statistiques la déduisent
+ * de l'adresse.
  */
 export function AddArchiveEntryDialog() {
   const router = useRouter();
@@ -43,7 +48,6 @@ export function AddArchiveEntryDialog() {
   >({});
   const [isPending, startTransition] = React.useTransition();
 
-  const storedName = composeArchiveName(values.firstName, values.lastName);
 
   const update =
     (field: keyof ArchiveEntryFormValues) =>
@@ -178,9 +182,11 @@ export function AddArchiveEntryDialog() {
             />
           </FormField>
 
-          <SenderCategoryPreview
-            email={values.email}
-            storedName={storedName}
+          <SpecialtyField
+            id="archive-specialty"
+            value={values.specialty}
+            onChange={update("specialty")}
+            error={errors.specialty}
           />
 
           <DialogFooter>

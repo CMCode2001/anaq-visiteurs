@@ -103,11 +103,12 @@ const ARCHIVE_HEADERS = [
   "N°",
   "Nom de l'usager",
   "Email",
+  "Spécialité",
   "Domaine",
   "Catégorie",
 ] as const;
 
-const ARCHIVE_COLUMN_WIDTHS = [8, 12, 6, 34, 40, 24, 22];
+const ARCHIVE_COLUMN_WIDTHS = [8, 12, 6, 34, 40, 34, 24, 22];
 
 export function buildArchiveWorkbook(
   entries: ArchiveEntry[],
@@ -119,6 +120,7 @@ export function buildArchiveWorkbook(
     entry.lineNumber,
     entry.fullName ?? "",
     entry.email,
+    entry.specialty ?? "",
     emailDomain(entry.email),
     senderCategory(entry.email),
   ]);

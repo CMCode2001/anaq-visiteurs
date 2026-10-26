@@ -44,9 +44,10 @@ habilités y accèdent par l'URL directe)
   exports Excel / PDF et page de statistiques exportable en PDF (volume
   mensuel, usagers distincts et récurrents, catégories d'expéditeurs,
   messageries). Bouton **Ajouter** pour enregistrer une nouvelle
-  sollicitation (prénom, nom, email), avec détection immédiate de la
-  catégorie d'expéditeur ; modification (nom, email) et suppression de
-  chaque ligne, avec confirmation
+  sollicitation (prénom, nom, email, spécialité) ; modification (nom, email,
+  spécialité) et suppression de chaque ligne, avec confirmation. La
+  **spécialité** (formation demandée) alimente le classement des
+  spécialités les plus demandées dans les statistiques
 
 ---
 
@@ -419,9 +420,14 @@ mois, chaque ligne au format `Nom <adresse@email>`.
    Une sollicitation ajoutée rejoint le mois en cours : l'année, le mois et
    le numéro de ligne sont attribués par la base, jamais par le navigateur.
 5. **SQL Editor** → exécuter `supabase/migrations/0007_archive_entries_edit_delete.sql`
-   pour activer la modification et la suppression. Seuls le nom et l'adresse
-   sont modifiables ; une ligne supprimée laisse un trou dans la
+   pour activer la modification et la suppression. Seuls le nom, l'adresse
+   et la spécialité (migration 0008) sont modifiables ; une ligne supprimée laisse un trou dans la
    numérotation, les autres numéros ne bougent pas.
+6. **SQL Editor** → exécuter `supabase/migrations/0008_archive_entries_specialty.sql`
+   pour ajouter la **spécialité** demandée (facultative, vide pour les lignes
+   importées). Un libellé de la liste des formations, même saisi sans
+   accents ni majuscules, est enregistré sous sa forme officielle : les
+   statistiques ne se fragmentent pas.
 
 La rubrique **Archives** de l'espace administrateur affiche l'année la plus
 récente ; un sélecteur apparaît dès que plusieurs années sont importées.

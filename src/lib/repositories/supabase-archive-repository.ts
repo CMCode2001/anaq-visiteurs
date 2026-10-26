@@ -18,7 +18,8 @@ import {
 
 type Client = SupabaseClient<Database>;
 
-const COLUMNS = "id, year, month, line_number, full_name, email, created_at";
+const COLUMNS =
+  "id, year, month, line_number, full_name, email, specialty, created_at";
 
 /**
  * Supabase plafonne chaque réponse de l'API à 1 000 lignes par défaut.
@@ -37,7 +38,11 @@ export class SupabaseArchiveRepository implements ArchiveRepository {
     // Ni année, ni mois, ni numéro : le trigger de la migration 0006 les pose.
     const { data, error } = await this.client
       .from("archive_entries")
-      .insert({ full_name: input.fullName, email: input.email })
+      .insert({
+        full_name: input.fullName,
+        email: input.email,
+        specialty: input.specialty,
+      })
       .select("year, month, line_number")
       .single();
 
@@ -56,7 +61,11 @@ export class SupabaseArchiveRepository implements ArchiveRepository {
     // réellement changé, RLS ne signalant pas une ligne qu'il a masquée.
     const { data, error } = await this.client
       .from("archive_entries")
-      .update({ full_name: input.fullName, email: input.email })
+      .update({
+        full_name: input.fullName,
+        email: input.email,
+        specialty: input.specialty,
+      })
       .eq("id", id)
       .select("id");
 
@@ -212,7 +221,11 @@ function applyFilters<T extends FilterableQuery<T>>(
     const term = sanitizePattern(query.search);
     if (term) {
       request = request.or(
-        `full_name.ilike.%${term}%,email.ilike.%${term}%`,
+        [
+          `full_name.ilike.%${term}%`,
+          `email.ilike.%${term}%`,
+          `specialty.ilike.%${term}%`,
+        ].join(","),
       );
     }
   }

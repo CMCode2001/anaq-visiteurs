@@ -11,9 +11,9 @@ import type {
  * Contrat d'accès aux archives du service aux usagers.
  *
  * Le registre Word est importé une fois pour toutes ; l'application y ajoute
- * ensuite les nouvelles sollicitations, en corrige le nom ou l'adresse et
- * retire celles saisies par erreur. La place d'une ligne dans le registre
- * (année, mois, numéro) ne change jamais.
+ * ensuite les nouvelles sollicitations, en corrige le nom, l'adresse ou la
+ * spécialité et retire celles saisies par erreur. La place d'une ligne dans
+ * le registre (année, mois, numéro) ne change jamais.
  */
 export interface ArchiveRepository {
   /**
@@ -23,7 +23,7 @@ export interface ArchiveRepository {
   create(input: CreateArchiveEntryInput): Promise<ArchiveEntryPosition>;
 
   /**
-   * Corrige le nom et l'adresse d'une ligne. `false` si elle n'existe pas
+   * Corrige le nom, l'adresse et la spécialité d'une ligne. `false` si elle n'existe pas
    * (ou plus) : RLS masque une ligne interdite au lieu de lever une erreur.
    */
   update(id: string, input: UpdateArchiveEntryInput): Promise<boolean>;

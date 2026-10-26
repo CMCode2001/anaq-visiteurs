@@ -17,15 +17,18 @@ export interface ArchiveEntry {
   lineNumber: number;
   fullName: string | null;
   email: string;
+  /** Spécialité de formation demandée ; absente du registre importé. */
+  specialty: string | null;
 }
 
 /** Ce que saisit l'agent ; la base attribue le reste. */
 export interface CreateArchiveEntryInput {
   fullName: string | null;
   email: string;
+  specialty: string | null;
 }
 
-/** Seuls le nom et l'adresse se corrigent ; la place dans le registre est fixe. */
+/** Nom, adresse et spécialité se corrigent ; la place dans le registre est fixe. */
 export type UpdateArchiveEntryInput = CreateArchiveEntryInput;
 
 /** Place attribuée par la base à une sollicitation ajoutée. */
@@ -36,7 +39,7 @@ export interface ArchiveEntryPosition {
 }
 
 /** Colonnes sur lesquelles le tri est autorisé (liste blanche). */
-export type ArchiveSortField = "month" | "full_name" | "email";
+export type ArchiveSortField = "month" | "full_name" | "email" | "specialty";
 
 /** Critères de recherche / filtrage de la liste des archives. */
 export interface ArchiveQuery {
@@ -90,6 +93,10 @@ export interface ArchiveStats {
   monthly: MonthlyArchiveCount[];
   categories: CountBucket[];
   domains: CountBucket[];
+  /** Spécialités demandées, sur les seules lignes qui en précisent une. */
+  specialties: CountBucket[];
+  /** Nombre de sollicitations dont la spécialité est renseignée. */
+  specialtyCount: number;
   topRequesters: ArchiveRequester[];
 }
 
@@ -102,5 +109,6 @@ export function toArchiveEntry(row: ArchiveEntryRow): ArchiveEntry {
     lineNumber: row.line_number,
     fullName: row.full_name,
     email: row.email,
+    specialty: row.specialty,
   };
 }

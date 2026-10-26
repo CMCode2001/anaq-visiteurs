@@ -188,7 +188,7 @@ const archiveIdSchema = z.object({
   id: z.string().uuid("Identifiant de sollicitation invalide."),
 });
 
-/** Correction du nom et de l'adresse d'une sollicitation archivée. */
+/** Correction du nom, de l'adresse et de la spécialité d'une sollicitation. */
 export async function updateArchiveEntryAction(
   id: unknown,
   input: unknown,

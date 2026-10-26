@@ -1,4 +1,10 @@
-import { CalendarRange, Inbox, Repeat, UserRound } from "lucide-react";
+import {
+  CalendarRange,
+  GraduationCap,
+  Inbox,
+  Repeat,
+  UserRound,
+} from "lucide-react";
 
 import { StatCard } from "@/components/admin/stat-card";
 import { DonutChart } from "@/components/charts/donut-chart";
@@ -20,6 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { EmptyState } from "@/components/ui/empty-state";
 import { monthLabel, monthShortLabel } from "@/lib/archive";
 import type { ArchiveStats } from "@/types/archive";
 
@@ -75,6 +82,32 @@ export function ArchiveStatsView({ stats }: { stats: ArchiveStats }) {
         </CardHeader>
         <CardContent>
           <MonthlyChart data={stats.monthly} year={stats.year} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Spécialités demandées</CardTitle>
+          <CardDescription>
+            {stats.specialtyCount > 0
+              ? `Les dix plus fréquentes. ${NUMBER.format(stats.specialtyCount)} sollicitation${stats.specialtyCount > 1 ? "s" : ""} sur ${NUMBER.format(stats.total)} précise${stats.specialtyCount > 1 ? "nt" : ""} une spécialité.`
+              : "Formations sur lesquelles portent les demandes."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {stats.specialtyCount === 0 ? (
+            <EmptyState
+              icon={<GraduationCap className="size-5" />}
+              title="Aucune spécialité renseignée pour le moment"
+              description="Renseignez-la à l’ajout d’une sollicitation, ou sur les lignes existantes avec « Modifier »."
+            />
+          ) : (
+            <RankingChart
+              data={stats.specialties.slice(0, 10)}
+              total={stats.specialtyCount}
+              ariaLabel="Classement des spécialités les plus demandées"
+            />
+          )}
         </CardContent>
       </Card>
 

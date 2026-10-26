@@ -1,6 +1,10 @@
 import "server-only";
 
-import { composeArchiveName, computeArchiveStats } from "@/lib/archive";
+import {
+  canonicalSpecialty,
+  composeArchiveName,
+  computeArchiveStats,
+} from "@/lib/archive";
 import { EXPORT_MAX_ROWS } from "@/lib/constants";
 import { getArchiveRepository } from "@/lib/repositories";
 import type {
@@ -27,26 +31,30 @@ export async function addArchiveEntry(input: {
   firstName: string;
   lastName: string;
   email: string;
+  specialty: string;
 }): Promise<ArchiveEntryPosition> {
   const repository = await getArchiveRepository();
   return repository.create({
     fullName: composeArchiveName(input.firstName, input.lastName),
     email: input.email,
+    specialty: canonicalSpecialty(input.specialty),
   });
 }
 
 /**
- * Corrige le nom et l'adresse d'une ligne ; `false` si elle n'existe plus.
- * Le nom est enregistré tel que saisi : c'est une correction, pas une saisie.
+ * Corrige le nom, l'adresse et la spécialité d'une ligne ; `false` si elle
+ * n'existe plus. Le nom est enregistré tel que saisi : c'est une
+ * correction, pas une saisie.
  */
 export async function updateArchiveEntry(
   id: string,
-  input: { fullName: string; email: string },
+  input: { fullName: string; email: string; specialty: string },
 ): Promise<boolean> {
   const repository = await getArchiveRepository();
   return repository.update(id, {
     fullName: input.fullName || null,
     email: input.email,
+    specialty: canonicalSpecialty(input.specialty),
   });
 }
 
