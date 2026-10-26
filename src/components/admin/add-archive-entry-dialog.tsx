@@ -49,13 +49,16 @@ export function AddArchiveEntryDialog() {
   const [isPending, startTransition] = React.useTransition();
 
 
+  const setField = (field: keyof ArchiveEntryFormValues, value: string) => {
+    setValues((current) => ({ ...current, [field]: value }));
+    // L'erreur d'un champ disparaît dès qu'on le corrige.
+    setErrors((current) => ({ ...current, [field]: undefined }));
+  };
+
   const update =
     (field: keyof ArchiveEntryFormValues) =>
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setValues((current) => ({ ...current, [field]: event.target.value }));
-      // L'erreur d'un champ disparaît dès qu'on le corrige.
-      setErrors((current) => ({ ...current, [field]: undefined }));
-    };
+    (event: React.ChangeEvent<HTMLInputElement>) =>
+      setField(field, event.target.value);
 
   const onOpenChange = (next: boolean) => {
     setOpen(next);
@@ -185,7 +188,7 @@ export function AddArchiveEntryDialog() {
           <SpecialtyField
             id="archive-specialty"
             value={values.specialty}
-            onChange={update("specialty")}
+            onChange={(value) => setField("specialty", value)}
             error={errors.specialty}
           />
 

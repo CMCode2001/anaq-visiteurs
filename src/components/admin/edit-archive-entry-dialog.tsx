@@ -74,12 +74,15 @@ export function EditArchiveEntryDialog({
     }
   };
 
+  const setField = (field: keyof ArchiveEntryUpdateValues, value: string) => {
+    setValues((current) => ({ ...current, [field]: value }));
+    setErrors((current) => ({ ...current, [field]: undefined }));
+  };
+
   const update =
     (field: keyof ArchiveEntryUpdateValues) =>
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setValues((current) => ({ ...current, [field]: event.target.value }));
-      setErrors((current) => ({ ...current, [field]: undefined }));
-    };
+    (event: React.ChangeEvent<HTMLInputElement>) =>
+      setField(field, event.target.value);
 
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -173,7 +176,7 @@ export function EditArchiveEntryDialog({
           <SpecialtyField
             id={`archive-edit-specialty-${entry.id}`}
             value={values.specialty}
-            onChange={update("specialty")}
+            onChange={(value) => setField("specialty", value)}
             error={errors.specialty}
           />
 
