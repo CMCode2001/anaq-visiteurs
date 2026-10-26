@@ -74,6 +74,7 @@ export const FORMATION_SUGGESTIONS = [
   "Génie civil",
   "Génie électrique",
   "Génie mécanique",
+  "Pétrole et Gaz",
   "Architecture et urbanisme",
   "Agronomie et agroalimentaire",
   "Environnement et développement durable",
